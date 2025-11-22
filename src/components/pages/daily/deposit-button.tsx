@@ -14,6 +14,7 @@ import {
   WORLD_DESTINATION_ADDRESS,
   WORLD_WLD_ADDRESS,
 } from "@/lib/constants";
+import { encodeJoinTournamentData } from "@/lib/contracts/utils";
 import { env } from "@/lib/env";
 
 export const DepositButton = () => {
@@ -24,6 +25,11 @@ export const DepositButton = () => {
   const [paymentCompleted, setPaymentCompleted] = useState(false);
 
   const amount = "1.00"; // $1.00
+  // Generate call data for joinTournament with placeholder values
+  const toCallData = encodeJoinTournamentData(
+    BigInt(0), // Placeholder tournamentId
+    (address || "0x0000000000000000000000000000000000000000") as `0x${string}`
+  );
 
   if (isInWorldcoinMiniApp) {
     return (
@@ -42,7 +48,7 @@ export const DepositButton = () => {
         onPaymentCompleted={() => setPaymentCompleted(true)}
         onPaymentStarted={() => setPaymentStarted(true)}
         toAddress={WORLD_DESTINATION_ADDRESS}
-        toCallData="0x"
+        toCallData={toCallData}
         toChain={worldchain.id}
         toToken={WORLD_WLD_ADDRESS}
         toUnits={amount}
@@ -76,10 +82,8 @@ export const DepositButton = () => {
       onPaymentStarted={() => setPaymentStarted(true)}
       preferredChains={[base.id]}
       preferredTokens={[{ chain: base.id, address: BASE_USDC_ADDRESS }]}
-      // Dummy calldata since we don't have a specific contract ABI yet.
-      // Replace "0x" with encoded function data if needed.
       toAddress={WORLD_DESTINATION_ADDRESS}
-      toCallData="0x"
+      toCallData={toCallData}
       toChain={worldchain.id}
       toToken={WORLD_WLD_ADDRESS}
       toUnits={amount}
