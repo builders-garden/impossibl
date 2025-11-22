@@ -1,0 +1,4 @@
+echo "Running pre-push checks..."
+pnpm lint
+rm -rf .next/types
+pnpm typecheck
