@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DepositButton } from "./deposit-button";
 
@@ -37,12 +38,14 @@ export const StatsCard = () => (
 
     {/* Play Button (Disabled/Opacity) */}
     <Button
-      className="h-auto w-full rounded-md bg-[#3bef63]/25 px-2 py-4 hover:bg-[#3bef63]/30"
-      disabled
+      asChild
+      className="h-auto w-full rounded-md bg-[#3bef63] px-2 py-4 hover:bg-[#3bef63]/30 disabled:bg-[#3bef63]/25"
     >
-      <span className="font-extrabold font-oxanium text-2xl text-black leading-[28px] tracking-[-0.5px]">
-        PLAY
-      </span>
+      <Link href="/daily/tournament/1">
+        <span className="font-extrabold font-oxanium text-2xl text-black leading-[28px] tracking-[-0.5px]">
+          PLAY
+        </span>
+      </Link>
     </Button>
 
     <p className="text-gray-500 text-sm">
