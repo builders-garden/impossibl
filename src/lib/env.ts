@@ -19,6 +19,7 @@ export const env = createEnv({
       .default("production"),
     // farcaster manifest
     NEXT_PUBLIC_URL: z.string().min(1),
+    NEXT_PUBLIC_WORLD_APP_ID: z.string().min(1),
     NEXT_PUBLIC_FARCASTER_HEADER: z.string().min(1),
     NEXT_PUBLIC_FARCASTER_PAYLOAD: z.string().min(1),
     NEXT_PUBLIC_FARCASTER_SIGNATURE: z.string().min(1),
@@ -33,6 +34,7 @@ export const env = createEnv({
   experimental__runtimeEnv: {
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
+    NEXT_PUBLIC_WORLD_APP_ID: process.env.NEXT_PUBLIC_WORLD_APP_ID,
     NEXT_PUBLIC_FARCASTER_HEADER: process.env.NEXT_PUBLIC_FARCASTER_HEADER,
     NEXT_PUBLIC_FARCASTER_PAYLOAD: process.env.NEXT_PUBLIC_FARCASTER_PAYLOAD,
     NEXT_PUBLIC_FARCASTER_SIGNATURE:

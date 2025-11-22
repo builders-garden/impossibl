@@ -14,8 +14,7 @@ export const Website = ({ page }: { page?: string }) => {
   //   env.NEXT_PUBLIC_URL
   // )}${page ? `/${encodeURIComponent(page)}` : ""}`;
 
-  const worldcointAppId = "app_1b51bcf10b0bb20939b8aebbb1dc4568";
-  const worldcoinUrl = `https://worldcoin.org/mini-app?app_id=${worldcointAppId}${page ? `&path=/${encodeURIComponent(page)}` : ""}`;
+  const worldcoinUrl = `https://worldcoin.org/mini-app?app_id=${env.NEXT_PUBLIC_WORLD_APP_ID}${page ? `&path=/${encodeURIComponent(page)}` : ""}`;
 
   return (
     <main className="w-full overflow-y-auto p-4 sm:p-0">
