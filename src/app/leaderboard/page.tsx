@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { NewGamePage } from "@/components/pages/new-game";
+import { LeaderboardPage } from "@/components/pages/leaderboard";
 import { OG_IMAGE_SIZE } from "@/lib/constants";
 import { env } from "@/lib/env";
 
@@ -28,7 +28,7 @@ export async function generateMetadata({
       action: {
         type: "launch_miniapp",
         name: env.NEXT_PUBLIC_APPLICATION_NAME,
-        url: `${appUrl}/new${
+        url: `${appUrl}/leaderboard${
           searchParamsString ? `?${searchParamsString}` : ""
         }`,
         splashImageUrl: `${appUrl}/images/splash.png`,
@@ -66,6 +66,6 @@ export async function generateMetadata({
   };
 }
 
-export default function NewGame() {
-  return <NewGamePage />;
+export default function Leaderboard() {
+  return <LeaderboardPage />;
 }

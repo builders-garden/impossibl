@@ -10,6 +10,7 @@ export const env = createEnv({
     TURSO_DATABASE_URL: z.string().min(1),
     TURSO_DATABASE_TOKEN: z.string().min(1),
     OPENAI_API_KEY: z.string().min(1),
+    DAIMO_PAY_WEBHOOK_SECRET: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_APP_ENV: z
@@ -25,6 +26,8 @@ export const env = createEnv({
     // application general info
     NEXT_PUBLIC_APPLICATION_NAME: z.string().min(1),
     NEXT_PUBLIC_APPLICATION_DESCRIPTION: z.string().min(1),
+    // daimo
+    NEXT_PUBLIC_DAIMO_PAY_ID: z.string().min(1),
   },
   // For Next.js >= 13.4.4, you only need to destructure client variables:
   experimental__runtimeEnv: {
@@ -39,5 +42,6 @@ export const env = createEnv({
     NEXT_PUBLIC_APPLICATION_NAME: process.env.NEXT_PUBLIC_APPLICATION_NAME,
     NEXT_PUBLIC_APPLICATION_DESCRIPTION:
       process.env.NEXT_PUBLIC_APPLICATION_DESCRIPTION,
+    NEXT_PUBLIC_DAIMO_PAY_ID: process.env.NEXT_PUBLIC_DAIMO_PAY_ID,
   },
 });

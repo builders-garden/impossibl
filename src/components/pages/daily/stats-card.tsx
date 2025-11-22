@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { DepositButton } from "./deposit-button";
 
 export const StatsCard = () => (
   <div className="flex flex-col gap-4 rounded-lg border-4 border-[#3bef63]/40 bg-[#3bef63]/10 p-4">
@@ -32,11 +33,7 @@ export const StatsCard = () => (
     </div>
 
     {/* Deposit Button */}
-    <Button className="h-auto w-full rounded-md bg-[#3bef63] px-2 py-4 hover:bg-[#3bef63]/90">
-      <span className="font-extrabold font-oxanium text-2xl text-black leading-[28px] tracking-[-0.5px]">
-        DEPOSIT $1,00
-      </span>
-    </Button>
+    <DepositButton />
 
     {/* Play Button (Disabled/Opacity) */}
     <Button
@@ -47,5 +44,9 @@ export const StatsCard = () => (
         PLAY
       </span>
     </Button>
+
+    <p className="text-gray-500 text-sm">
+      Pay $1 daily to enter the daily challenge.
+    </p>
   </div>
 );

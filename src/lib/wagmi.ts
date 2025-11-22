@@ -9,9 +9,9 @@ import { env } from "@/lib/env";
 // Create wagmi config with all required chains
 export const wagmiConfigMiniApp = createConfig(
   getDefaultConfig({
-    appName: "Impossibl",
+    appName: env.NEXT_PUBLIC_APPLICATION_NAME,
     appIcon: `${env.NEXT_PUBLIC_URL}/images/icon.png`,
-    appDescription: "Impossibl",
+    appDescription: env.NEXT_PUBLIC_APPLICATION_DESCRIPTION,
     appUrl: env.NEXT_PUBLIC_URL,
     ssr: undefined,
     chains: [mainnet, basePreconf, worldchain],

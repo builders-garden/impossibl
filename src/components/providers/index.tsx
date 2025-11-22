@@ -1,5 +1,6 @@
 "use client";
 
+import { DaimoPayProvider } from "@daimo/pay";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MiniKitProvider } from "@worldcoin/minikit-js/minikit-provider";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -24,15 +25,17 @@ export default function Providers({
     <ErudaProvider>
       <WagmiProvider config={wagmiConfigMiniApp} initialState={initialState}>
         <QueryClientProvider client={queryClient}>
-          <MiniKitProvider>
-            <EnvironmentProvider>
-              <FarcasterProvider addMiniAppOnLoad={false}>
-                <AuthProvider>
-                  <NuqsAdapter>{children}</NuqsAdapter>
-                </AuthProvider>
-              </FarcasterProvider>
-            </EnvironmentProvider>
-          </MiniKitProvider>
+          <DaimoPayProvider>
+            <MiniKitProvider>
+              <EnvironmentProvider>
+                <FarcasterProvider addMiniAppOnLoad={false}>
+                  <AuthProvider>
+                    <NuqsAdapter>{children}</NuqsAdapter>
+                  </AuthProvider>
+                </FarcasterProvider>
+              </EnvironmentProvider>
+            </MiniKitProvider>
+          </DaimoPayProvider>
         </QueryClientProvider>
       </WagmiProvider>
     </ErudaProvider>

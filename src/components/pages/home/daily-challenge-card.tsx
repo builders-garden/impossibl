@@ -32,10 +32,15 @@ export const DailyChallengeCard = () => (
       </Link>
     </Button>
 
-    <Button className="h-auto w-full rounded-md border-2 border-[#3bef63] bg-black px-2 py-4 hover:bg-[#3bef63]/10">
-      <span className="font-extrabold font-oxanium text-2xl text-[#3bef63] leading-[28px] tracking-[-0.5px]">
-        LEADERBOARD
-      </span>
+    <Button
+      asChild
+      className="h-auto w-full rounded-md border-2 border-[#3bef63] bg-black px-2 py-4 hover:bg-[#3bef63]/10"
+    >
+      <Link className="w-full" href="/leaderboard">
+        <span className="font-extrabold font-oxanium text-2xl text-[#3bef63] leading-[28px] tracking-[-0.5px]">
+          LEADERBOARD
+        </span>
+      </Link>
     </Button>
   </div>
 );

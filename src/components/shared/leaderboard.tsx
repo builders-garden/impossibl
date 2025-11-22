@@ -1,31 +1,56 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/utils";
 
-export const Leaderboard = () => (
-  <div className="flex flex-col gap-4">
+type LeaderboardItem = {
+  rank: number;
+  userId: string;
+  pfpUrl?: string;
+  name: string;
+  attempts: number;
+};
+
+type LeaderboardProps = {
+  items: LeaderboardItem[];
+  you: LeaderboardItem;
+  showAll?: boolean;
+  onShowAll?: () => void;
+};
+
+export const Leaderboard = ({
+  items,
+  you,
+  showAll = false,
+  onShowAll,
+}: LeaderboardProps) => (
+  <div className="flex w-full flex-col gap-4">
     <div className="flex flex-col gap-6 rounded-lg border-4 border-white/40 p-4">
       <h2 className="font-bold font-orbitron text-2xl leading-[28px] tracking-[-0.5px]">
         Leaderboard
       </h2>
 
       <div className="flex w-full flex-col gap-4">
-        <LeaderboardItem attempts={1} name="limone.eth" rank={1} />
-        <LeaderboardItem attempts={4} name="bianc8.eth" rank={2} />
-        <LeaderboardItem attempts={5} name="frank.eth" rank={3} />
+        {items.map((item) => (
+          <LeaderboardItem key={item.userId} {...item} />
+        ))}
       </div>
 
       {/* Separator Line */}
       <div className="h-px w-full bg-white/20" />
 
       {/* User Rank */}
-      <LeaderboardItem attempts={23} name="bianc.eth" rank={47} you />
+      <LeaderboardItem {...you} />
 
       {/* View All Button */}
-      <Button className="h-auto w-full rounded-md border-4 border-white/25 bg-transparent px-2 py-4 hover:bg-white/5">
-        <span className="font-extrabold font-oxanium text-2xl text-white leading-[28px] tracking-[-0.5px]">
-          VIEW ALL
-        </span>
-      </Button>
+      {showAll ? (
+        <Button
+          className="h-auto w-full rounded-md border-4 border-white/25 bg-transparent px-2 py-4 hover:bg-white/5"
+          onClick={onShowAll}
+        >
+          <span className="font-extrabold font-oxanium text-2xl text-white leading-[28px] tracking-[-0.5px]">
+            VIEW ALL
+          </span>
+        </Button>
+      ) : null}
     </div>
   </div>
 );
@@ -36,7 +61,7 @@ type LeaderboardItemProps = {
   attempts: number;
   you?: boolean;
 };
-const LeaderboardItem = ({
+export const LeaderboardItem = ({
   rank,
   name,
   attempts,
