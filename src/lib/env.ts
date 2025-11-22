@@ -1,4 +1,5 @@
 import { createEnv } from "@t3-oss/env-nextjs";
+import { isHex } from "viem";
 import { z } from "zod";
 
 // https://env.t3.gg/docs/nextjs
@@ -11,6 +12,9 @@ export const env = createEnv({
     TURSO_DATABASE_TOKEN: z.string().min(1),
     OPENAI_API_KEY: z.string().min(1),
     DAIMO_PAY_WEBHOOK_SECRET: z.string().min(1),
+    BACKEND_PRIVATE_KEY: z.string().refine((val) => isHex(val), {
+      message: "Invalid private key (must be a valid hex string)",
+    }),
   },
   client: {
     NEXT_PUBLIC_APP_ENV: z

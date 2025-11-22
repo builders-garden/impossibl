@@ -17,3 +17,20 @@ export function encodeJoinTournamentData(
     args: [tournamentId, player],
   });
 }
+
+/**
+ *
+ * @param buyInToken - The token to use for the buy in
+ * @param buyInAmount
+ * @returns
+ */
+export function generateTournamentForNewDay(
+  buyInToken: Address,
+  buyInAmount: bigint
+) {
+  return encodeFunctionData({
+    abi: impossibleAbi,
+    functionName: "createGlobalTournament",
+    args: [buyInToken, buyInAmount],
+  });
+}

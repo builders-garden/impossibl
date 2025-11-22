@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { TournamentPage } from "@/components/pages/tournament";
 import { OG_IMAGE_SIZE } from "@/lib/constants";
-import { getTournamentFromId } from "@/lib/database/queries/tournament.query";
+import { getTournamentById } from "@/lib/database/queries/tournament.query";
 import { env } from "@/lib/env";
 
 const appUrl = env.NEXT_PUBLIC_URL;
@@ -79,7 +79,7 @@ export default async function Tournament({
   params: Promise<{ tournamentId: string }>;
 }) {
   const { tournamentId } = await params;
-  const tournament = await getTournamentFromId(tournamentId);
+  const tournament = await getTournamentById(tournamentId);
   if (!tournament) {
     redirect("/daily");
   }

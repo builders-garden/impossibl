@@ -234,11 +234,26 @@ const DrawGraphics = ({
   );
 };
 
-const GameContent = () => {
+type GameProps = {
+  attempts: number;
+  onAttempt: (hasWon: boolean) => void;
+  loading: boolean;
+  error: string | null;
+  ready: boolean;
+};
+const GameContent = ({
+  attempts,
+  onAttempt,
+  loading,
+  error,
+  ready,
+}: GameProps) => {
   const { app } = useApplication();
   const worldRef = useRef<Container>(null);
   const playerRef = useRef<Graphics>(null);
-  const [gameState, setGameState] = useState<"playing" | "won">("playing");
+  const [gameState, setGameState] = useState<"playing" | "won" | "paused">(
+    "playing"
+  );
 
   // Game state in refs to avoid re-renders during game loop
   const state = useRef({
@@ -258,15 +273,20 @@ const GameContent = () => {
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space") {
+      if (e.code === "Space" && gameState === "playing") {
         state.current.wantsJump = true;
         // Prevent scrolling
         e.preventDefault();
       }
+      if (e.code === "Escape") {
+        setGameState((prev) => (prev === "paused" ? "playing" : "paused"));
+      }
     };
 
     const handlePointerDown = () => {
-      state.current.wantsJump = true;
+      if (gameState === "playing") {
+        state.current.wantsJump = true;
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -278,7 +298,7 @@ const GameContent = () => {
         app.canvas.removeEventListener("pointerdown", handlePointerDown);
       }
     };
-  }, [app]);
+  }, [app, gameState]);
 
   // Reset function
   const resetPlayer = () => {
@@ -290,7 +310,7 @@ const GameContent = () => {
 
   // Game Loop
   useTick((ticker) => {
-    if (gameState === "won") {
+    if (gameState === "won" || gameState === "paused") {
       return;
     }
 
@@ -353,6 +373,7 @@ const GameContent = () => {
       if (o.kind === "spike" || o.kind === "block") {
         const hit = px1 < ox2 && px2 > ox1 && adjPy1 < oy2 && adjPy2 > oy1;
         if (hit) {
+          onAttempt(false);
           resetPlayer();
           break;
         }
@@ -372,6 +393,7 @@ const GameContent = () => {
     // Win check
     if (s.x > LEVEL.endX + TILE) {
       setGameState("won");
+      onAttempt(true);
     }
 
     // Apply state to refs
@@ -462,6 +484,28 @@ const GameContent = () => {
     []
   );
 
+  // Style for attempts text
+  const attemptsTextStyle = useMemo(
+    () =>
+      new TextStyle({
+        fill: "#ffffff",
+        fontSize: 20,
+        fontWeight: "bold",
+      }),
+    []
+  );
+
+  // Style for menu text
+  const menuTextStyle = useMemo(
+    () =>
+      new TextStyle({
+        fill: "#ffffff",
+        fontSize: 30,
+        fontWeight: "bold",
+      }),
+    []
+  );
+
   if (!app) {
     return null;
   }
@@ -475,6 +519,52 @@ const GameContent = () => {
         <DrawGraphics draw={drawFlag} x={LEVEL.endX} y={GROUND_Y} />
       </pixiContainer>
 
+      <pixiText
+        style={attemptsTextStyle}
+        text={`Attempt ${attempts}`}
+        x={20}
+        y={20}
+      />
+
+      {gameState === "paused" && (
+        <pixiContainer>
+          <pixiGraphics
+            draw={(g) => {
+              g.clear();
+              g.rect(0, 0, app.screen.width, app.screen.height);
+              g.fill({ color: 0x000000, alpha: 0.5 });
+            }}
+          />
+          <pixiText
+            anchor={0.5}
+            style={textStyle}
+            text="PAUSED"
+            x={app.screen.width / 2}
+            y={app.screen.height / 2 - 50}
+          />
+          <pixiText
+            anchor={0.5}
+            style={menuTextStyle}
+            text="Press ESC to Resume"
+            x={app.screen.width / 2}
+            y={app.screen.height / 2 + 20}
+          />
+          <pixiText
+            anchor={0.5}
+            cursor="pointer"
+            eventMode="static"
+            onPointerDown={(e: any) => {
+              e.preventDefault();
+              window.history.back();
+            }}
+            style={menuTextStyle}
+            text="Click here to Exit"
+            x={app.screen.width / 2}
+            y={app.screen.height / 2 + 70}
+          />
+        </pixiContainer>
+      )}
+
       {gameState === "won" && (
         <pixiText
           anchor={0.5}
@@ -484,11 +574,47 @@ const GameContent = () => {
           y={app.screen.height / 2}
         />
       )}
+
+      {!ready && (
+        <pixiText
+          anchor={0.5}
+          style={textStyle}
+          text="Not ready..."
+          x={app.screen.width / 2}
+          y={app.screen.height / 2}
+        />
+      )}
+
+      {loading && (
+        <pixiText
+          anchor={0.5}
+          style={textStyle}
+          text="Loading..."
+          x={app.screen.width / 2}
+          y={app.screen.height / 2}
+        />
+      )}
+
+      {error && (
+        <pixiText
+          anchor={0.5}
+          style={textStyle}
+          text={error}
+          x={app.screen.width / 2}
+          y={app.screen.height / 2}
+        />
+      )}
     </>
   );
 };
 
-export default function Game() {
+export default function Game({
+  attempts,
+  onAttempt,
+  loading,
+  error,
+  ready,
+}: GameProps) {
   const [mounted, setMounted] = useState(false);
   const parentRef = useRef(null);
 
@@ -506,7 +632,13 @@ export default function Game() {
       ref={parentRef}
     >
       <Application antialias={true} background="#222222" resizeTo={parentRef}>
-        <GameContent />
+        <GameContent
+          attempts={attempts}
+          error={error}
+          loading={loading}
+          onAttempt={onAttempt}
+          ready={ready}
+        />
       </Application>
     </div>
   );

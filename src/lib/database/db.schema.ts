@@ -151,7 +151,8 @@ export const walletAddress = sqliteTable("wallet_address", {
 export const tournament = sqliteTable("tournament", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  type: integer("type").notNull(),
+  type: integer("type").notNull().default(0), // 0 daily, 1 group
+  winner: text("winner").references(() => user.id, { onDelete: "cascade" }), // only for group tournaments
   startDate: integer("start_date", { mode: "timestamp_ms" }).notNull(),
   endDate: integer("end_date", { mode: "timestamp_ms" }).notNull(),
   merkleRoot: text("merkle_root", { mode: "json" }).notNull(),

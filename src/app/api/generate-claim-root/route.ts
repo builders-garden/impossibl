@@ -1,9 +1,18 @@
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import { and, eq, inArray, isNotNull, ne } from "drizzle-orm";
-import { NextResponse } from "next/server";
-import { type Address, createPublicClient, formatUnits, http } from "viem";
+import { type NextRequest, NextResponse } from "next/server";
+import {
+  type Address,
+  createPublicClient,
+  createWalletClient,
+  formatUnits,
+  getAddress,
+  http,
+  parseUnits,
+} from "viem";
+import { privateKeyToAccount } from "viem/accounts";
 import { worldchain } from "viem/chains";
-import { z } from "zod";
+import { WORLD_WLD_ADDRESS } from "@/lib/constants";
 import { impossibleAbi } from "@/lib/contracts/abi";
 import { impossibleAddress } from "@/lib/contracts/constant";
 import { db } from "@/lib/database";
@@ -13,13 +22,16 @@ import {
   userPrize,
   walletAddress,
 } from "@/lib/database/db.schema";
-
-const requestSchema = z.object({
-  tournamentId: z.string().min(1),
-});
+import { env } from "@/lib/env";
 
 // Create a public client for Worldchain
 const worldchainClient = createPublicClient({
+  chain: worldchain,
+  transport: http(),
+});
+
+// wallet client
+const worldchainWalletClient = createWalletClient({
   chain: worldchain,
   transport: http(),
 });
@@ -93,19 +105,10 @@ function calculatePrizeDistribution(
   return prizes;
 }
 
-export async function POST(request: Request) {
+export async function GET(_request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsed = requestSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.message },
-        { status: 400 }
-      );
-    }
-
-    const { tournamentId } = parsed.data;
+    // TODO get tournamentId from database
+    const tournamentId = "1";
 
     // 1. Read prize pool from smart contract on Worldchain
     let prizePool: number;
@@ -252,6 +255,16 @@ export async function POST(request: Request) {
         merkleValues,
       })
       .where(eq(tournament.id, tournamentId));
+
+    // TODO generate tournmanent for new day
+    const account = privateKeyToAccount(env.BACKEND_PRIVATE_KEY);
+    await worldchainWalletClient.writeContract({
+      account,
+      address: impossibleAddress as Address,
+      abi: impossibleAbi,
+      functionName: "createGlobalTournament",
+      args: [getAddress(WORLD_WLD_ADDRESS as Address), parseUnits("1", 18)],
+    });
 
     return NextResponse.json({
       success: true,
