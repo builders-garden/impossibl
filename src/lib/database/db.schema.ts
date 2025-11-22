@@ -1,5 +1,10 @@
 import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
 import { ulid } from "ulid";
 import type { FarcasterNotificationDetails } from "@/types/farcaster.type";
 
@@ -141,6 +146,43 @@ export const walletAddress = sqliteTable("wallet_address", {
 });
 
 /**
+ * Impossibl Tables
+ */
+export const tournament = sqliteTable("tournament", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  type: integer("type").notNull(),
+  startDate: integer("start_date", { mode: "timestamp_ms" }).notNull(),
+  endDate: integer("end_date", { mode: "timestamp_ms" }).notNull(),
+  merkleRoot: text("merkle_root", { mode: "json" }).notNull(),
+  merkleValues: text("merkle_values", { mode: "json" }).notNull(),
+  prizePool: integer("prize_pool").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+export const userPrize = sqliteTable(
+  "user_prize",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    tournamentId: text("tournament_id")
+      .notNull()
+      .references(() => tournament.id, { onDelete: "cascade" }),
+    prize: text("prize").notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    wonAtAttempt: integer("won_at_attempt"),
+    claimedTxHash: text("claimed_tx_hash"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.tournamentId] })]
+);
+
+/**
  * Drizzle Types
  */
 export type Account = typeof account.$inferSelect;
@@ -159,6 +201,14 @@ export type WalletAddress = typeof walletAddress.$inferSelect;
 export type CreateWalletAddress = typeof walletAddress.$inferInsert;
 export type UpdateWalletAddress = Partial<CreateWalletAddress>;
 
+export type Tournament = typeof tournament.$inferSelect;
+export type CreateTournament = typeof tournament.$inferInsert;
+export type UpdateTournament = Partial<CreateTournament>;
+
+export type UserPrize = typeof userPrize.$inferSelect;
+export type CreateUserPrize = typeof userPrize.$inferInsert;
+export type UpdateUserPrize = Partial<CreateUserPrize>;
+
 /**
  * Drizzle Relations
  */
@@ -173,6 +223,8 @@ export const userRelations = relations(user, ({ many, one }) => ({
     fields: [user.minikitAddress],
     references: [walletAddress.userId],
   }),
+  tournaments: many(tournament),
+  prizes: many(userPrize),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -200,5 +252,20 @@ export const walletAddressRelations = relations(walletAddress, ({ one }) => ({
   user: one(user, {
     fields: [walletAddress.userId],
     references: [user.id],
+  }),
+}));
+
+export const tournamentRelations = relations(tournament, ({ many }) => ({
+  userPrizes: many(userPrize),
+}));
+
+export const userPrizeRelations = relations(userPrize, ({ one }) => ({
+  user: one(user, {
+    fields: [userPrize.userId],
+    references: [user.id],
+  }),
+  tournament: one(tournament, {
+    fields: [userPrize.tournamentId],
+    references: [tournament.id],
   }),
 }));
