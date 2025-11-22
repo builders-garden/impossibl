@@ -9,6 +9,7 @@ export const env = createEnv({
     NOTIFICATION_SECRET: z.string().min(1),
     TURSO_DATABASE_URL: z.string().min(1),
     TURSO_DATABASE_TOKEN: z.string().min(1),
+    OPENAI_API_KEY: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_APP_ENV: z

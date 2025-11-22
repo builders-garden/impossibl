@@ -1,0 +1,539 @@
+///// ONE /////
+import { Application, Container, Graphics, Text } from "pixi.js";
+
+(async () => {
+  // APP
+  const app = new Application();
+  await app.init({
+    background: "#222222",
+    resizeTo: window,
+    antialias: true,
+  });
+  document.body.appendChild(app.canvas);
+
+  // CONSTANTS
+  const TILE = 20;
+  const GROUND_Y = 400;
+  const SIDE_HIT_THRESHOLD = 2; // px threshold for side touching
+
+  // LEVEL
+  const level = {
+    player: {
+      x: 0,
+      y: GROUND_Y - TILE,
+      width: TILE,
+      height: TILE,
+      color: 0xff4444,
+      runSpeed: 200,
+      jumpVelocity: -400,
+      gravity: 1800,
+    },
+    obstacles: [
+      { kind: "spike", x: 8 * TILE, y: GROUND_Y },
+
+      // lava holes (visual only; top-edge fatal)
+      { kind: "lava", x: 18 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+      { kind: "lava", x: 19 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+      { kind: "lava", x: 20 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+      { kind: "lava", x: 26 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+
+      // staircase platforms
+      { kind: "platform", x: 18 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 19 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 20 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+
+      { kind: "platform", x: 22 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 23 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 24 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+
+      { kind: "platform", x: 26 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 27 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 28 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 29 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 30 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 31 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+      { kind: "platform", x: 32 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+
+      { kind: "spike", x: 29 * TILE, y: GROUND_Y - 3 * TILE },
+
+      // floating platform + lava under it
+      { kind: "lava", x: 34 * TILE, y: GROUND_Y, width: 4 * TILE, height: TILE },
+      { kind: "platform", x: 34 * TILE, y: GROUND_Y - 3 * TILE, width: 2 * TILE, height: TILE },
+      { kind: "spike", x: 38 * TILE, y: GROUND_Y },
+
+      // higher staircase (lava holes on ground-level)
+      { kind: "lava", x: 44 * TILE, y: GROUND_Y, width: 4 * TILE, height: TILE },
+      { kind: "lava", x: 48 * TILE, y: GROUND_Y, width: 4 * TILE, height: TILE },
+      { kind: "lava", x: 52 * TILE, y: GROUND_Y, width: 4 * TILE, height: TILE },
+
+      { kind: "platform", x: 44 * TILE, y: GROUND_Y - TILE, width: 2 * TILE, height: TILE },
+      { kind: "platform", x: 48 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+      { kind: "platform", x: 52 * TILE, y: GROUND_Y - 3 * TILE, width: 2 * TILE, height: TILE },
+      { kind: "platform", x: 56 * TILE, y: GROUND_Y - 4 * TILE, width: 2 * TILE, height: TILE },
+
+      { kind: "spike", x: 59 * TILE, y: GROUND_Y - 4 * TILE },
+
+      // final ramp
+      { kind: "platform", x: 64 * TILE, y: GROUND_Y - 3 * TILE, width: 2 * TILE, height: TILE },
+      { kind: "platform", x: 68 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+      { kind: "platform", x: 72 * TILE, y: GROUND_Y - TILE, width: 2 * TILE, height: TILE },
+
+      { kind: "spike", x: 76 * TILE, y: GROUND_Y },
+    ],
+    endX: 82 * TILE,
+  };
+
+  // WORLD
+  const world = new Container();
+  app.stage.addChild(world);
+
+  // ground visual
+  const ground = new Graphics();
+  ground.beginFill(0x111111);
+  ground.drawRect(0, GROUND_Y, 10000, 1000);
+  ground.endFill();
+  world.addChild(ground);
+
+  // PLAYER
+  const player = new Graphics();
+  player.beginFill(level.player.color);
+  player.drawRect(0, 0, level.player.width, level.player.height);
+  player.endFill();
+  player.x = level.player.x;
+  player.y = level.player.y;
+  world.addChild(player);
+
+  let vy = 0;
+  let onGround = false;
+
+  // build obstacles and store helpful metadata
+  const obstacles = [];
+  for (const o of level.obstacles) {
+    const g = new Graphics();
+
+    if (o.kind === "spike") {
+      const s = TILE;
+      o.width = s;
+      o.height = s;
+      g.beginFill(0x000000);
+      g.lineStyle(2, 0xffffff);
+      g.moveTo(0, s);
+      g.lineTo(s / 2, 0);
+      g.lineTo(s, s);
+      g.lineTo(0, s);
+      g.endFill();
+      g.x = o.x;
+      g.y = o.y - s;
+    }
+
+    if (o.kind === "lava") {
+      // visual rectangle only
+      g.beginFill(0xff3300);
+      g.drawRect(0, 0, o.width, o.height);
+      g.endFill();
+      g.x = o.x;
+      g.y = o.y;
+      // store top edge coords for collision check
+      o.topY = o.y;
+      o.leftX = o.x;
+      o.rightX = o.x + o.width;
+    }
+
+    if (o.kind === "platform") {
+      g.beginFill(0x666666);
+      g.drawRect(0, 0, o.width, o.height);
+      g.endFill();
+      g.x = o.x;
+      g.y = o.y;
+    }
+
+    world.addChild(g);
+    obstacles.push({ gfx: g, data: o });
+  }
+
+  // END FLAG
+  const flag = new Graphics();
+  flag.lineStyle(4, 0xffffff);
+  flag.moveTo(0, 0).lineTo(0, -TILE * 2);
+  flag.beginFill(0xaa66ff);
+  flag.drawPolygon([0, -TILE * 2, TILE, -TILE * 1.5, 0, -TILE]);
+  flag.endFill();
+  flag.x = level.endX;
+  flag.y = GROUND_Y;
+  world.addChild(flag);
+
+  // INPUT
+  let wantsJump = false;
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "Space") wantsJump = true;
+  });
+  app.canvas.addEventListener("pointerdown", () => {
+    wantsJump = true;
+  });
+
+  // GAME LOOP
+  app.ticker.add((time) => {
+    const dt = time.deltaTime / 60;
+    const pw = level.player.width;
+    const ph = level.player.height;
+
+    // store previous vertical positions BEFORE movement (important)
+    const prevY = player.y;
+    const prevBottom = prevY + ph;
+
+    // HORIZONTAL automatic run
+    player.x += level.player.runSpeed * dt;
+
+    // JUMP
+    if (wantsJump && onGround) {
+      vy = level.player.jumpVelocity;
+      onGround = false;
+    }
+    wantsJump = false;
+
+    // GRAVITY & apply vertical movement
+    vy += level.player.gravity * dt;
+    player.y += vy * dt;
+
+    // post-move bottom
+    const newY = player.y;
+    const newBottom = newY + ph;
+
+    // PLAYER AABB
+    const px1 = player.x;
+    const px2 = player.x + pw;
+    const py1 = newY;
+    const py2 = newBottom;
+
+    // GROUND: if over a lava hole, ground removed
+    const overLavaRegion = obstacles.some(({ data }) =>
+      data.kind === "lava" && px2 > data.leftX && px1 < data.rightX
+    );
+    const groundTop = GROUND_Y - ph;
+    if (!overLavaRegion && player.y >= groundTop) {
+      player.y = groundTop;
+      vy = 0;
+      onGround = true;
+    }
+
+    // recompute after potential snap
+    const adjPy1 = player.y;
+    const adjPy2 = player.y + ph;
+
+    // COLLISIONS: iterate obstacles
+    for (const { gfx, data } of obstacles) {
+      const ox1 = gfx.x;
+      const ox2 = gfx.x + (data.width ?? 0);
+      const oy1 = gfx.y;
+      const oy2 = gfx.y + (data.height ?? 0);
+
+      // 1) SPIKES: full-body death
+      if (data.kind === "spike") {
+        const hitSpike = px1 < ox2 && px2 > ox1 && adjPy1 < oy2 && adjPy2 > oy1;
+        if (hitSpike) {
+          resetPlayer();
+          continue;
+        }
+      }
+
+      // 2) LAVA: only top-edge kills (lava is NOT a blocking rectangle)
+      if (data.kind === "lava") {
+        const overlapsHorizontally = px2 > data.leftX && px1 < data.rightX;
+
+        // detect crossing from above into lava top this frame:
+        // prevBottom <= top && newBottom >= top
+        const crossedTop = overlapsHorizontally && prevBottom <= data.topY && newBottom >= data.topY;
+
+        if (crossedTop) {
+          resetPlayer();
+          continue;
+        }
+        // otherwise lava does not block or kill
+      }
+
+      // 3) PLATFORMS: top-only land; sides kill
+      // 3) PLATFORMS: top-only land; sides kill
+      if (data.kind === "platform") {
+        const horizOverlap = px2 > ox1 && px1 < ox2;
+
+        // LANDING detection: prevBottom <= platformTop AND newBottom >= platformTop
+        const landedThisFrame = horizOverlap && prevBottom <= oy1 && newBottom >= oy1 && vy > 0;
+
+        if (landedThisFrame) {
+          // Snap to platform top
+          player.y = oy1 - ph;
+          vy = 0;
+          onGround = true;
+          continue;
+        }
+
+        // SIDE CONTACT detection: only kill if player hits sides while BELOW or AT platform top level
+        // If player's bottom is above the platform top (standing on it), don't check sides
+        const verticalOverlapNow = adjPy2 > oy1 && adjPy1 < oy2;
+        
+        if (verticalOverlapNow && adjPy1 >= oy1) {
+          // Player's top is at or below platform top, so they're hitting the platform body
+          const touchingLeftSide = Math.abs(px2 - ox1) <= SIDE_HIT_THRESHOLD;
+          const touchingRightSide = Math.abs(px1 - ox2) <= SIDE_HIT_THRESHOLD;
+
+          if (touchingLeftSide || touchingRightSide) {
+            resetPlayer();
+            continue;
+          }
+        }
+
+        // Do NOT treat platform bottom hits as death in this file (so you can jump up into the platform's underside).
+        // If you want bottom-hit-death later, we can add prevTop/newTop checks.
+      }
+      
+    }
+
+    // WIN condition
+    if (player.x > level.endX + TILE) {
+      win();
+    }
+
+    // CAMERA smoothing
+    const targetX = -player.x + app.renderer.width * 0.3;
+    world.x += (targetX - world.x) * 0.1;
+  });
+
+  function resetPlayer() {
+    player.x = level.player.x;
+    player.y = level.player.y;
+    vy = 0;
+    onGround = false;
+  }
+
+  function win() {
+    app.ticker.stop();
+    const msg = new Text("YOU WIN!", {
+      fill: "#ffffff",
+      fontSize: 50,
+      fontWeight: "bold",
+    });
+    msg.anchor.set(0.5);
+    msg.x = app.screen.width / 2;
+    msg.y = app.screen.height / 2;
+    app.stage.addChild(msg);
+  }
+})();
+
+
+///// TWO /////
+  const level = {
+  player: {
+    x: 0,
+    y: GROUND_Y - TILE,
+    width: TILE,
+    height: TILE,
+    color: 0x44bbff,
+    runSpeed: 200,
+    jumpVelocity: -400,
+    gravity: 1800,
+  },
+
+  obstacles: [
+    // ---- Early timing section ----
+    { kind: "spike", x: 10 * TILE, y: GROUND_Y },
+    { kind: "lava",  x: 16 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava",  x: 19 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+
+    // First staircase
+    { kind: "platform", x: 16 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 17 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+
+    { kind: "platform", x: 20 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+    { kind: "spike",    x: 22 * TILE, y: GROUND_Y - 2 * TILE },
+
+    // ---- Lava gauntlet ----
+    { kind: "lava", x: 28 * TILE, y: GROUND_Y, width: 4 * TILE, height: TILE },
+    { kind: "lava", x: 32 * TILE, y: GROUND_Y, width: 4 * TILE, height: TILE },
+
+    { kind: "platform", x: 28 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 30 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 32 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+
+    // Mid-air landing test (3-tile gap max, feasible)
+    { kind: "platform", x: 37 * TILE, y: GROUND_Y - TILE, width: 2 * TILE, height: TILE },
+    { kind: "spike",    x: 39 * TILE, y: GROUND_Y },
+
+    // ---- Rising staircase with hazards ----
+    { kind: "platform", x: 44 * TILE, y: GROUND_Y - TILE, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 48 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 52 * TILE, y: GROUND_Y - 3 * TILE, width: 2 * TILE, height: TILE },
+
+    { kind: "spike",    x: 54 * TILE, y: GROUND_Y - 3 * TILE },
+
+    // Alternating lava holes
+    { kind: "lava", x: 58 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava", x: 61 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava", x: 64 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+
+    // Narrow timing jumps
+    { kind: "platform", x: 58 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 61 * TILE, y: GROUND_Y - 1 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 64 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+
+    { kind: "spike", x: 66 * TILE, y: GROUND_Y },
+
+    // ---- Final difficulty ramp ----
+    { kind: "platform", x: 72 * TILE, y: GROUND_Y - 3 * TILE, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 76 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 80 * TILE, y: GROUND_Y - TILE, width: 2 * TILE, height: TILE },
+
+    { kind: "spike", x: 84 * TILE, y: GROUND_Y },
+  ],
+
+  endX: 90 * TILE, // Place the flag further
+};
+
+
+
+///// THREE /////
+const level = {
+  player: {
+    x: 0,
+    y: GROUND_Y - TILE,
+    width: TILE,
+    height: TILE,
+    color: 0xffaa44,
+    runSpeed: 200,
+    jumpVelocity: -400,
+    gravity: 1800,
+  },
+
+  obstacles: [
+    // Early bait spikes
+    { kind: "spike", x: 8 * TILE, y: GROUND_Y },
+    { kind: "spike", x: 12 * TILE, y: GROUND_Y },
+
+    // Small lava pits
+    { kind: "lava", x: 18 * TILE, y: GROUND_Y, width: 2 * TILE, height: TILE },
+    { kind: "lava", x: 22 * TILE, y: GROUND_Y, width: 2 * TILE, height: TILE },
+
+    // Double towers with alternating heights
+    { kind: "platform", x: 18 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 19 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+
+    { kind: "platform", x: 22 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 23 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+
+    { kind: "spike", x: 24 * TILE, y: GROUND_Y - 2 * TILE },
+
+    // Mid-air jumps
+    { kind: "platform", x: 30 * TILE, y: GROUND_Y - TILE, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 34 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+
+    // Triple lava gauntlet
+    { kind: "lava", x: 40 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava", x: 43 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava", x: 46 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+
+    // Narrow floating steps
+    { kind: "platform", x: 40 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 43 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 46 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+
+    // Final precision landing
+    { kind: "spike", x: 54 * TILE, y: GROUND_Y },
+
+    { kind: "platform", x: 58 * TILE, y: GROUND_Y - TILE, width: 3 * TILE, height: TILE },
+  ],
+
+  endX: 63 * TILE,
+};
+
+//// FOUR ////
+const level = {
+  player: {
+    x: 0,
+    y: GROUND_Y - TILE,
+    width: TILE,
+    height: TILE,
+    color: 0x99ff55,
+    runSpeed: 200,
+    jumpVelocity: -400,
+    gravity: 1800,
+  },
+
+  obstacles: [
+    // Early warmup
+    { kind: "lava", x: 6 * TILE, y: GROUND_Y, width: 2 * TILE, height: TILE },
+
+    // Quick spikes to interrupt rhythm
+    { kind: "spike", x: 12 * TILE, y: GROUND_Y },
+
+    // Begin alternating sequence
+    { kind: "lava", x: 16 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava", x: 20 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava", x: 24 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+    { kind: "lava", x: 28 * TILE, y: GROUND_Y, width: 3 * TILE, height: TILE },
+
+    // Steps above pits
+    { kind: "platform", x: 16 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 20 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 24 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 28 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+
+    // Mid-air spike
+    { kind: "spike", x: 32 * TILE, y: GROUND_Y - TILE },
+
+    // Safety landing
+    { kind: "platform", x: 36 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+
+    // Final micro jumps
+    { kind: "lava", x: 42 * TILE, y: GROUND_Y, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 44 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+    { kind: "spike", x: 46 * TILE, y: GROUND_Y },
+  ],
+
+  endX: 50 * TILE,
+};
+
+
+///// FIVE ////
+const level = {
+  player: {
+    x: 0,
+    y: GROUND_Y - TILE,
+    width: TILE,
+    height: TILE,
+    color: 0xdd55ff,
+    runSpeed: 200,
+    jumpVelocity: -400,
+    gravity: 1800,
+  },
+
+  obstacles: [
+    // Intro spikes
+    { kind: "spike", x: 7 * TILE, y: GROUND_Y },
+
+    // First staggered pillars
+    { kind: "platform", x: 12 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 14 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 16 * TILE, y: GROUND_Y - 3 * TILE, width: TILE, height: TILE },
+
+    { kind: "spike", x: 17 * TILE, y: GROUND_Y - 3 * TILE },
+
+    // Lava below to prevent falling
+    { kind: "lava", x: 12 * TILE, y: GROUND_Y, width: 8 * TILE, height: TILE },
+
+    // The double-pillar trap
+    { kind: "platform", x: 22 * TILE, y: GROUND_Y - 2 * TILE, width: TILE, height: TILE },
+    { kind: "platform", x: 24 * TILE, y: GROUND_Y - TILE, width: TILE, height: TILE },
+
+    // Mid-air narrow landing
+    { kind: "platform", x: 30 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+    { kind: "spike", x: 31 * TILE, y: GROUND_Y - 3 * TILE },
+
+    // Final rising path
+    { kind: "platform", x: 36 * TILE, y: GROUND_Y - TILE, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 40 * TILE, y: GROUND_Y - 2 * TILE, width: 2 * TILE, height: TILE },
+    { kind: "platform", x: 44 * TILE, y: GROUND_Y - 3 * TILE, width: 2 * TILE, height: TILE },
+
+    { kind: "spike", x: 46 * TILE, y: GROUND_Y - 3 * TILE },
+  ],
+
+  endX: 52 * TILE,
+};
