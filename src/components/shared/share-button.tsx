@@ -111,7 +111,7 @@ export const ShareButton = ({
           Share via cast
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2" onClick={handleShareToTwitter}>
-          <TwitterIcon className="size-4" />
+          <TwitterIcon className="size-4 dark:invert" />
           Share via X
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2" onClick={handleShareNative}>

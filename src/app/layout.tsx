@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Orbitron, Oxanium } from "next/font/google";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 import { preconnect } from "react-dom";
@@ -7,9 +7,10 @@ import Providers from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 import { env } from "@/lib/env";
 import "./globals.css";
-import { Navbar } from "@/components/shared/navbar";
 
 const inter = Inter({ subsets: ["latin"] });
+const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
+const oxanium = Oxanium({ subsets: ["latin"], variable: "--font-oxanium" });
 
 const appUrl = env.NEXT_PUBLIC_URL;
 const appName = env.NEXT_PUBLIC_APPLICATION_NAME;
@@ -69,11 +70,12 @@ export default async function RootLayout({
   const cookie = (await headers()).get("cookie");
 
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} size-full antialiased`}>
+    <html className="dark no-scrollbar" lang="en" suppressHydrationWarning>
+      <body
+        className={`${inter.className} ${orbitron.variable} ${oxanium.variable} size-full antialiased`}
+      >
         <Providers cookie={cookie}>
-          <main className="flex w-full flex-col gap-0 text-black">
-            <Navbar />
+          <main className="no-scrollbar flex w-full flex-col gap-0">
             {children}
           </main>
           <Suspense>

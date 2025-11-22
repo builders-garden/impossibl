@@ -139,9 +139,7 @@ export function FarcasterProvider({
 
   useEffect(() => {
     if (!isMiniAppReady) {
-      loadFarcasterMiniApp().then(() => {
-        console.log("Farcaster MiniApp loaded");
-      });
+      loadFarcasterMiniApp();
     }
   }, [isMiniAppReady, loadFarcasterMiniApp]);
 

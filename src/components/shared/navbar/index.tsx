@@ -1,34 +1,44 @@
 "use client";
 
+import { ArrowLeftIcon } from "lucide-react";
 import { motion } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
-import { env } from "@/lib/env";
+import { Button } from "@/components/ui/button";
 import { UserProfile } from "./user-profile";
 
-export const Navbar = () => (
+type NavbarProps = {
+  title?: string;
+  link?: "/" | "/new" | "/daily" | `/profile/${string}`;
+  showBackButton?: boolean;
+};
+
+export const Navbar = ({
+  title = "Impossibl",
+  link = "/",
+  showBackButton = false,
+}: NavbarProps) => (
   <motion.header
     animate={{ opacity: 1, y: 0 }}
-    className="z-50 flex w-full items-center justify-between px-2 text-white"
+    className="z-50 flex w-full items-center justify-between px-4 text-white"
     id="navbar"
     initial={{ opacity: 0, y: -50 }}
     transition={{ duration: 0.5 }}
   >
-    <Link
-      className="flex w-fit cursor-pointer items-center justify-start text-black"
-      href="/"
-    >
-      <Image
-        alt="logo"
-        className="h-10 w-10 p-1"
-        height={30}
-        src="/images/icon.png"
-        width={30}
-      />
-      <span className="font-bold text-xl" style={{ fontWeight: 500 }}>
-        {env.NEXT_PUBLIC_APPLICATION_NAME}
-      </span>
-    </Link>
+    <div className="flex items-center gap-1">
+      {showBackButton ? (
+        <Button asChild size="icon" variant="ghost">
+          <Link className="flex items-center justify-center" href={link}>
+            <ArrowLeftIcon className="size-6" />
+          </Link>
+        </Button>
+      ) : null}
+      <Link
+        className="flex cursor-pointer items-center justify-start"
+        href={link}
+      >
+        <h1 className="font-extrabold text-2xl">{title}</h1>
+      </Link>
+    </div>
 
     <UserProfile />
   </motion.header>
