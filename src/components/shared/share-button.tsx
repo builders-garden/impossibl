@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn, copyToClipboard, createTwitterIntentUrl } from "@/utils";
+import { WorldcoinIcon } from "./icons/worldcoin-icon";
 
 type ShareButtonProps = {
   side?: "left" | "right" | "top" | "bottom" | undefined;
@@ -23,7 +24,7 @@ type ShareButtonProps = {
     | "ghost"
     | null
     | undefined;
-  buttonSize?: "sm" | "default" | "lg" | "icon" | null | undefined;
+  buttonSize?: "sm" | "default" | "lg" | "xl" | "icon" | null | undefined;
   buttonText?: string;
   buttonClassName?: string;
   navigatorTitle?: string;
@@ -31,6 +32,7 @@ type ShareButtonProps = {
   miniappUrl: string;
   linkCopied: boolean;
   setLinkCopied: Dispatch<SetStateAction<boolean>>;
+  showIcon?: boolean;
   handleShare?: () => void;
 };
 
@@ -42,6 +44,7 @@ export const ShareButton = ({
   buttonClassName,
   navigatorTitle = "Imagine!",
   navigatorText = "Check out this imagine",
+  showIcon = false,
   miniappUrl,
   linkCopied,
   setLinkCopied,
@@ -49,6 +52,22 @@ export const ShareButton = ({
 }: ShareButtonProps) => {
   const handleShareToFarcaster = () => {
     handleShare?.();
+  };
+
+  const handleShareToWorldApp = async () => {
+    // TODO: Create World App intent url
+    const worldAppIntentUrl = createTwitterIntentUrl("text", miniappUrl);
+    try {
+      miniappSdk.actions.openUrl(worldAppIntentUrl);
+      console.log("success sharing to twitter");
+    } catch (err) {
+      console.log("error using miniappSdk.actions.openUrl", err);
+      if (!window) {
+        return;
+      }
+      window.open(worldAppIntentUrl, "_blank");
+      await copyToClipboard(worldAppIntentUrl, setLinkCopied);
+    }
   };
 
   const handleShareToTwitter = async () => {
@@ -101,11 +120,17 @@ export const ShareButton = ({
           size={buttonSize}
           variant={buttonVariant}
         >
-          <Share2Icon className="size-4" />
+          {showIcon || buttonSize === "icon" ? (
+            <Share2Icon className="size-4" />
+          ) : null}
           {buttonSize === "icon" ? null : buttonText}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side={side}>
+        <DropdownMenuItem className="gap-2" onClick={handleShareToWorldApp}>
+          <WorldcoinIcon className="h-4 w-[150px] dark:invert" />
+          Share via World App
+        </DropdownMenuItem>
         <DropdownMenuItem className="gap-2" onClick={handleShareToFarcaster}>
           <FarcasterIcon className="size-4" />
           Share via cast
