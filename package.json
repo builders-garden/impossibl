@@ -48,7 +48,7 @@
     "@wagmi/core": "^2.19.0",
     "@worldcoin/minikit-js": "^1.9.8",
     "better-auth": "^1.3.34",
-    "better-auth-minikit": "^1.0.0",
+    "better-auth-minikit": "^1.0.2",
     "better-auth-siwf": "^1.0.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

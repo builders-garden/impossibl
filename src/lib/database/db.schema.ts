@@ -16,7 +16,7 @@ export const user = sqliteTable("user", {
     .default(false)
     .notNull(),
   image: text("image"),
-  minikitAddress: text("minikit_address").notNull().unique(),
+  minikitAddress: text("minikit_address").unique(),
   farcasterFid: integer("farcaster_fid").unique(),
   farcasterUsername: text("farcaster_username"),
   farcasterDisplayName: text("farcaster_display_name"),
@@ -74,7 +74,7 @@ export const account = sqliteTable("account", {
   }),
   scope: text("scope"),
   password: text("password"),
-  minikitAddress: text("minikit_address").notNull().unique(),
+  minikitAddress: text("minikit_address").unique(),
   farcasterFid: integer("farcaster_fid").unique(),
   farcasterUsername: text("farcaster_username"),
   farcasterDisplayName: text("farcaster_display_name"),

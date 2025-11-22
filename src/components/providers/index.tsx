@@ -7,7 +7,6 @@ import { cookieToInitialState, WagmiProvider } from "wagmi";
 import { AuthProvider } from "@/contexts/auth-context";
 import { EnvironmentProvider } from "@/contexts/environment-context";
 import { FarcasterProvider } from "@/contexts/farcaster-context";
-import { WorldcoinProvider } from "@/contexts/worldcoin-context";
 import { wagmiConfigMiniApp } from "@/lib/wagmi";
 import { ErudaProvider } from "./eruda";
 
@@ -23,21 +22,19 @@ export default function Providers({
   const initialState = cookieToInitialState(wagmiConfigMiniApp, cookie);
   return (
     <ErudaProvider>
-      <EnvironmentProvider>
-        <WagmiProvider config={wagmiConfigMiniApp} initialState={initialState}>
-          <QueryClientProvider client={queryClient}>
-            <MiniKitProvider>
-              <WorldcoinProvider>
-                <FarcasterProvider addMiniAppOnLoad={true}>
-                  <AuthProvider>
-                    <NuqsAdapter>{children}</NuqsAdapter>
-                  </AuthProvider>
-                </FarcasterProvider>
-              </WorldcoinProvider>
-            </MiniKitProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
-      </EnvironmentProvider>
+      <WagmiProvider config={wagmiConfigMiniApp} initialState={initialState}>
+        <QueryClientProvider client={queryClient}>
+          <MiniKitProvider>
+            <EnvironmentProvider>
+              <FarcasterProvider addMiniAppOnLoad={false}>
+                <AuthProvider>
+                  <NuqsAdapter>{children}</NuqsAdapter>
+                </AuthProvider>
+              </FarcasterProvider>
+            </EnvironmentProvider>
+          </MiniKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
     </ErudaProvider>
   );
 }

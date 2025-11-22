@@ -12,12 +12,12 @@ import {
   useMemo,
   useState,
 } from "react";
+import { getAddress } from "viem";
 import { useEnvironment } from "@/contexts/environment-context";
 import { useFarcaster } from "@/contexts/farcaster-context";
 import type { User } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 import { env } from "@/lib/env";
-import { useWorldcoin } from "./worldcoin-context";
 
 export type AuthMethod = "farcaster" | "worldcoin" | "wallet" | null;
 
@@ -49,14 +49,13 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Environment context (single source of truth for isMiniApp)
   const {
-    isInFarcasterMiniApp,
     isInWorldcoinMiniApp,
+    isInFarcasterMiniApp,
     isLoading: isEnvironmentLoading,
   } = useEnvironment();
 
   // Miniapp context
   const { context: miniAppContext, isMiniAppReady } = useFarcaster();
-  const { isWorldcoinMiniAppReady } = useWorldcoin();
 
   const {
     data: session,
@@ -153,35 +152,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithWorldcoin = useCallback(async () => {
     try {
-      const worldUser = MiniKit.user;
-      if (!worldUser) {
-        throw new Error("[Auth] No user from Worldcoin");
-      }
-      const walletAddress = worldUser.walletAddress;
-      if (!walletAddress) {
-        console.log("Errors");
-        throw new Error("[Auth] No address found");
-      }
-
       setIsSigningIn(true);
       setError(null);
       console.log("Starting Worldcoin SIWE sign-in");
 
       // 1. Get nonce from SIWE
-      const nonce = await authClient.minikit.nonce({
-        walletAddress,
-        chainId: 480, // WorldCoin Mainnet
-      });
+      const nonce = await authClient.minikit.nonce();
       if (!nonce?.data?.nonce) {
         throw new Error("[Auth] No nonce from SIWE");
       }
 
       // 2. SIWE on Worldcoin
+      const statement = `Log in to ${env.NEXT_PUBLIC_APPLICATION_NAME} using your Worldcoin wallet.`;
       const finalPayload = await MiniKit.commandsAsync.walletAuth({
         nonce: nonce.data.nonce,
         expirationTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         notBefore: new Date(Date.now() - 24 * 60 * 60 * 1000), // 24 hours ago
-        statement: `Log in to ${env.NEXT_PUBLIC_APPLICATION_NAME} using your Worldcoin wallet ${walletAddress}.`,
+        statement,
       });
       if (finalPayload.finalPayload.status === "error") {
         console.error(
@@ -192,16 +179,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       console.log("Worldcoin token acquired", finalPayload.finalPayload);
 
+      const worldUser = await MiniKit.getUserInfo();
+      console.log("Worldcoin user", worldUser);
+      if (!worldUser) {
+        throw new Error("[Auth] No user from Worldcoin");
+      }
+
       // 3. Verify SIWE signature with better-auth siwe plugin
       const { message, signature } = finalPayload.finalPayload;
+      console.log("[AUTH] Minikit signin");
       const result = await authClient.minikit.signin({
         message,
         signature,
-        walletAddress,
+        nonce: nonce.data.nonce,
+        walletAddress: getAddress(worldUser.walletAddress),
         chainId: 480, // WorldCoin Mainnet
         user: {
-          username: worldUser.username,
-          profilePictureUrl: worldUser.profilePictureUrl,
+          username: worldUser.username ?? undefined,
+          profilePictureUrl: worldUser.profilePictureUrl ?? undefined,
         },
       });
 
@@ -232,11 +227,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Auto sign-in logic (production / normal flow) -----------------------------------------------
   useEffect(() => {
-    // If we're in a miniapp, wait for it to be ready
-    if (
-      (isInFarcasterMiniApp && !isMiniAppReady) ||
-      (isInWorldcoinMiniApp && !isWorldcoinMiniAppReady)
-    ) {
+    // If we're in a Farcaster miniapp, wait for it to be ready
+    if (isInFarcasterMiniApp && !isMiniAppReady) {
       return;
     }
 
@@ -246,6 +238,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // If we're in miniapp, prefer farcaster as method
       if (isInFarcasterMiniApp) {
         setAuthMethod("farcaster");
+      }
+      if (isInWorldcoinMiniApp) {
+        setAuthMethod("worldcoin");
       }
       setHasTriedInitialAuth(true);
       return;
@@ -264,6 +259,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Auto sign-in with Worldcoin if in miniapp and not authenticated
+    if (
+      isInWorldcoinMiniApp &&
+      !authMethod &&
+      !hasAttemptedWorldcoinAutoSignIn
+    ) {
+      console.log("Triggering auto Worldcoin sign-in");
+      setHasAttemptedWorldcoinAutoSignIn(true);
+      signInWithWorldcoin();
+    }
+
     // Auto sign-in with Farcaster if in miniapp and not authenticated
     if (
       isInFarcasterMiniApp &&
@@ -274,16 +280,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Triggering auto Farcaster sign-in");
       setHasAttemptedFarcasterAutoSignIn(true);
       signInWithFarcaster();
-    }
-    // Auto sign-in with Worldcoin if in miniapp and not authenticated
-    if (
-      isInWorldcoinMiniApp &&
-      !authMethod &&
-      !hasAttemptedWorldcoinAutoSignIn
-    ) {
-      console.log("Triggering auto Worldcoin sign-in");
-      setHasAttemptedWorldcoinAutoSignIn(true);
-      signInWithWorldcoin();
     }
   }, [
     authMethod,
@@ -299,7 +295,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     hasAttemptedWorldcoinAutoSignIn,
     isInWorldcoinMiniApp,
-    isWorldcoinMiniAppReady,
+  ]);
+
+  // Auto sign-in with wallet when wallet is connected
+  useEffect(() => {
+    // Wait for environment detection to complete (with timeout fallback)
+    if (isEnvironmentLoading) {
+      return;
+    }
+
+    // If we're in a miniapp, wait for it to be ready
+    if (isInFarcasterMiniApp && !isMiniAppReady) {
+      return;
+    }
+
+    // Only proceed with wallet sign-in after we've tried initial auth check
+    if (!hasTriedInitialAuth || isSigningIn) {
+      return;
+    }
+  }, [
+    hasTriedInitialAuth,
+    isInFarcasterMiniApp,
+    isMiniAppReady,
+    isEnvironmentLoading,
+    isSigningIn,
   ]);
 
   const value: AuthContextType = {
@@ -307,7 +326,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading:
       isEnvironmentLoading ||
       (isInFarcasterMiniApp && !isMiniAppReady) ||
-      (isInWorldcoinMiniApp && !isWorldcoinMiniAppReady) ||
       isSigningIn ||
       isSessionLoading,
     error: authError || (sessionError as Error | null),

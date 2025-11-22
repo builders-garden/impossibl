@@ -69,34 +69,36 @@ export function FarcasterProvider({
       const tmpIsInMiniApp = await miniappSdk.isInMiniApp();
       setIsInMiniApp(tmpIsInMiniApp);
 
-      // then get the context
-      const tmpContext = await miniappSdk.context;
+      if (tmpIsInMiniApp) {
+        // then get the context
+        const tmpContext = await miniappSdk.context;
 
-      // if the context is not null, set the context
-      if (tmpContext) {
-        setContext(tmpContext as MiniAppContext);
-        // then get the safe area insets
-        if (tmpContext.client.safeAreaInsets) {
-          setSafeAreaInsets(tmpContext.client.safeAreaInsets);
-        }
-        setIsMiniAppReady(true);
+        // if the context is not null, set the context
+        if (tmpContext) {
+          setContext(tmpContext as MiniAppContext);
+          // then get the safe area insets
+          if (tmpContext.client.safeAreaInsets) {
+            setSafeAreaInsets(tmpContext.client.safeAreaInsets);
+          }
+          setIsMiniAppReady(true);
 
-        if (addMiniAppOnLoad) {
-          await miniappSdk.actions.addMiniApp();
-        }
+          if (addMiniAppOnLoad) {
+            await miniappSdk.actions.addMiniApp();
+          }
 
-        try {
-          const tmpCapabilities = await miniappSdk.getCapabilities();
-          setCapabilities(tmpCapabilities);
-        } catch (err) {
-          console.error("Failed to get capabilities", err);
-          setError(
-            err instanceof Error ? err.message : "Failed to get capabilities"
-          );
+          try {
+            const tmpCapabilities = await miniappSdk.getCapabilities();
+            setCapabilities(tmpCapabilities);
+          } catch (err) {
+            console.error("Failed to get capabilities", err);
+            setError(
+              err instanceof Error ? err.message : "Failed to get capabilities"
+            );
+          }
+        } else {
+          setError("Failed to load Farcaster context");
+          setIsInMiniApp(false);
         }
-      } else {
-        setError("Failed to load Farcaster context");
-        setIsInMiniApp(false);
       }
     } catch (err) {
       console.error("SDK initialization error:", err);

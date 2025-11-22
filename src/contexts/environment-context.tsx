@@ -1,5 +1,5 @@
 import { sdk as miniappSdk } from "@farcaster/miniapp-sdk";
-import { MiniKit } from "@worldcoin/minikit-js";
+import { useMiniKit } from "@worldcoin/minikit-js/minikit-provider";
 import {
   createContext,
   type ReactNode,
@@ -35,6 +35,7 @@ type EnvironmentProviderProps = {
 
 export const EnvironmentProvider = ({ children }: EnvironmentProviderProps) => {
   const [isInFarcasterMiniApp, setIsInFarcasterMiniApp] = useState(false);
+  const { isInstalled: isInWorldMinikit } = useMiniKit();
   const [isInWorldcoinMiniApp, setIsInWorldcoinMiniApp] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isInBrowser, setIsInBrowser] = useState(false);
@@ -42,11 +43,15 @@ export const EnvironmentProvider = ({ children }: EnvironmentProviderProps) => {
   useLayoutEffect(() => {
     const checkEnvironment = async () => {
       try {
-        const inWorldcoinMiniApp = MiniKit?.isInstalled();
+        const inWorldcoinMiniApp = isInWorldMinikit ?? false;
+        console.log("inWorldcoinMiniApp", inWorldcoinMiniApp);
         setIsInWorldcoinMiniApp(inWorldcoinMiniApp);
         const inFarcasterMiniApp = await miniappSdk.isInMiniApp();
+        console.log("inFarcasterMiniApp", inFarcasterMiniApp);
         setIsInFarcasterMiniApp(inFarcasterMiniApp);
-        setIsInBrowser(!(inWorldcoinMiniApp || inFarcasterMiniApp));
+        const tmpIsInBrowser = !(inWorldcoinMiniApp || inFarcasterMiniApp);
+        console.log("tmpIsInBrowser", tmpIsInBrowser);
+        setIsInBrowser(tmpIsInBrowser);
       } catch (error) {
         console.error("[environment] Error checking environment", error);
         setIsInWorldcoinMiniApp(false);
@@ -58,7 +63,7 @@ export const EnvironmentProvider = ({ children }: EnvironmentProviderProps) => {
     };
 
     checkEnvironment();
-  }, []);
+  }, [isInWorldMinikit]);
 
   const value: EnvironmentContextType = {
     isInFarcasterMiniApp,

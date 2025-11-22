@@ -48,7 +48,7 @@ export const auth = betterAuth<BetterAuthOptions>({
     minikit({
       domain: new URL(env.NEXT_PUBLIC_URL).hostname,
       emailDomainName: new URL(env.NEXT_PUBLIC_URL).hostname,
-      anonymous: false,
+      anonymous: true,
       getNonce: async () => await generateRandomString(32),
       verifyMessage: async ({ message, signature, address }) =>
         await verifySIWEMessage(message, signature, address),
