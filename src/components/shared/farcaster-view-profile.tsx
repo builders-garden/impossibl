@@ -26,7 +26,7 @@ export const FarcasterViewProfile = ({
       {context ? (
         <p
           className={cn(
-            "flex cursor-pointer items-center justify-center gap-1 text-center text-black text-md",
+            "flex cursor-pointer items-center justify-center gap-1 text-center text-black text-md dark:text-white",
             className
           )}
           onClick={() => openFarcasterProfile(farcasterFid ?? 2)}
@@ -37,7 +37,7 @@ export const FarcasterViewProfile = ({
       ) : (
         <Link
           className={cn(
-            "flex w-full cursor-pointer items-center justify-center gap-1 text-center text-black text-md underline",
+            "flex w-full cursor-pointer items-center justify-center gap-1 text-center text-black text-md underline dark:text-white",
             className
           )}
           href={`https://farcaster.xyz/${farcasterUsername ?? ""}`}

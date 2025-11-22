@@ -1,5 +1,6 @@
 "use client";
 
+import { Navbar } from "@/components/shared/navbar";
 import {
   TabsContent,
   TabsList,
@@ -17,7 +18,7 @@ export const ProfilePage = ({ user }: { user: User }) => {
   const { isInBrowser } = useEnvironment();
 
   if (isInBrowser) {
-    return <Website />;
+    return <Website page={`profile/${user.id}`} />;
   }
 
   if (!isAuthenticated) {
@@ -25,30 +26,34 @@ export const ProfilePage = ({ user }: { user: User }) => {
   }
 
   return (
-    <div className="mx-auto flex size-full max-w-md flex-col gap-2 overflow-x-hidden px-2">
-      <ProfileHeader user={user} />
+    <div className="no-scrollbar mx-auto flex size-full max-w-md flex-col gap-2 overflow-x-hidden">
+      <Navbar />
 
-      {/* User stats and activity */}
-      <TabsWithQueryState
-        className="mb-4 w-full"
-        defaultValue="tab1"
-        queryKey="profile"
-      >
-        <TabsList className="flex w-full justify-between">
-          <TabsTrigger className="w-full" value="tab1">
-            Tab1
-          </TabsTrigger>
-          <TabsTrigger className="w-full" value="tab2">
-            Tab2
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent className="my-4" value="tab1">
-          Tab 1
-        </TabsContent>
-        <TabsContent className="my-4" value="tab2">
-          Tab 2
-        </TabsContent>
-      </TabsWithQueryState>
+      <div className="flex size-full max-w-md flex-col gap-4 px-4 pb-12">
+        <ProfileHeader user={user} />
+
+        {/* User stats and activity */}
+        <TabsWithQueryState
+          className="mb-4 w-full"
+          defaultValue="tab1"
+          queryKey="profile"
+        >
+          <TabsList className="flex w-full justify-between">
+            <TabsTrigger className="w-full" value="tab1">
+              Tab1
+            </TabsTrigger>
+            <TabsTrigger className="w-full" value="tab2">
+              Tab2
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent className="my-4" value="tab1">
+            Tab 1
+          </TabsContent>
+          <TabsContent className="my-4" value="tab2">
+            Tab 2
+          </TabsContent>
+        </TabsWithQueryState>
+      </div>
     </div>
   );
 };

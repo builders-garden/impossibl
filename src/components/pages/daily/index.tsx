@@ -4,16 +4,15 @@ import { Website } from "@/components/pages/website";
 import { Navbar } from "@/components/shared/navbar";
 import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
-import { DailyChallengeCard } from "./daily-challenge-card";
-import { GameOptions } from "./game-options";
-import { PlayWithFriendsCard } from "./play-with-friends-card";
+import { Leaderboard } from "./leaderboard";
+import { StatsCard } from "./stats-card";
 
-export function HomePage() {
+export function DailyPage() {
   const { user, isAuthenticated } = useAuth();
   const { isInBrowser } = useEnvironment();
 
   if (isInBrowser) {
-    return <Website />;
+    return <Website page="daily" />;
   }
 
   if (isAuthenticated && !user) {
@@ -22,14 +21,14 @@ export function HomePage() {
 
   return (
     <div className="no-scrollbar flex min-h-screen w-full flex-col items-center gap-4 overflow-y-auto font-orbitron text-white">
-      {/* Header */}
-      <Navbar />
+      <Navbar link="/" showBackButton title="Daily Challenge" />
 
-      {/* Main Content */}
       <div className="flex w-full max-w-md flex-col gap-4 px-4 pb-12">
-        <DailyChallengeCard />
-        <PlayWithFriendsCard />
-        <GameOptions />
+        {/* Main Content */}
+        <div className="flex flex-col gap-4">
+          <StatsCard />
+          <Leaderboard />
+        </div>
       </div>
     </div>
   );

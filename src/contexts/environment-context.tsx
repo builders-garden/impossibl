@@ -44,13 +44,10 @@ export const EnvironmentProvider = ({ children }: EnvironmentProviderProps) => {
     const checkEnvironment = async () => {
       try {
         const inWorldcoinMiniApp = isInWorldMinikit ?? false;
-        console.log("inWorldcoinMiniApp", inWorldcoinMiniApp);
         setIsInWorldcoinMiniApp(inWorldcoinMiniApp);
         const inFarcasterMiniApp = await miniappSdk.isInMiniApp();
-        console.log("inFarcasterMiniApp", inFarcasterMiniApp);
         setIsInFarcasterMiniApp(inFarcasterMiniApp);
         const tmpIsInBrowser = !(inWorldcoinMiniApp || inFarcasterMiniApp);
-        console.log("tmpIsInBrowser", tmpIsInBrowser);
         setIsInBrowser(tmpIsInBrowser);
       } catch (error) {
         console.error("[environment] Error checking environment", error);

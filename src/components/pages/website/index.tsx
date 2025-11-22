@@ -6,21 +6,19 @@ import { env } from "@/lib/env";
 import { cn } from "@/utils";
 
 export const Website = ({ page }: { page?: string }) => {
-  const farcasterUrl = `https://farcaster.xyz/?launchFrameUrl=${encodeURIComponent(
-    env.NEXT_PUBLIC_URL
-  )}${page ? `/${encodeURIComponent(page)}` : ""}`;
-  console.log(farcasterUrl);
+  // const farcasterUrl = `https://farcaster.xyz/?launchFrameUrl=${encodeURIComponent(
+  //   env.NEXT_PUBLIC_URL
+  // )}${page ? `/${encodeURIComponent(page)}` : ""}`;
 
-  const baseUrl = `cbwallet://miniapp?url=${encodeURIComponent(
-    env.NEXT_PUBLIC_URL
-  )}${page ? `/${encodeURIComponent(page)}` : ""}`;
-  console.log(baseUrl);
+  // const baseUrl = `cbwallet://miniapp?url=${encodeURIComponent(
+  //   env.NEXT_PUBLIC_URL
+  // )}${page ? `/${encodeURIComponent(page)}` : ""}`;
 
   const worldcointAppId = "app_1b51bcf10b0bb20939b8aebbb1dc4568";
-  const worldcoinUrl = `https://worldcoin.org/mini-app?app_id=${worldcointAppId}`;
+  const worldcoinUrl = `https://worldcoin.org/mini-app?app_id=${worldcointAppId}${page ? `&path=/${encodeURIComponent(page)}` : ""}`;
 
   return (
-    <main className="w-full overflow-y-auto p-4 text-black sm:p-0">
+    <main className="w-full overflow-y-auto p-4 sm:p-0">
       <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col items-center justify-center gap-4 py-4 sm:flex-row sm:gap-24 sm:py-12">
         {/* Content Section */}
         <div className="flex flex-col gap-4 sm:gap-12">
@@ -39,9 +37,6 @@ export const Website = ({ page }: { page?: string }) => {
                 </h1>
               </div>
             </div>
-            <p className="text-black/80 text-xs sm:text-lg">
-              {env.NEXT_PUBLIC_APPLICATION_NAME}
-            </p>
           </div>
 
           <div
@@ -58,7 +53,7 @@ export const Website = ({ page }: { page?: string }) => {
             )}
           >
             <h1 className="font-semibold text-lg sm:text-2xl">How to use</h1>
-            <ul className="list-inside text-black/80 text-xs sm:text-lg">
+            <ul className="list-inside text-black/80 text-xs sm:text-lg dark:text-white">
               <li>1. Open the app on Worldcoin</li>
               <li>2. Scan the QR code to open the app</li>
               <li>3. Enjoy :)</li>
@@ -75,7 +70,7 @@ export const Website = ({ page }: { page?: string }) => {
             <div className="flex w-full flex-col gap-4">
               {/* Open on Worldcoin */}
               <Link
-                className="cursor-pointer rounded-lg border border-[#CECECE] bg-white text-black shadow-xl hover:bg-white/80"
+                className="cursor-pointer rounded-lg border border-[#CECECE] bg-white text-black shadow-xl hover:bg-white/80 dark:text-white"
                 href={new URL(worldcoinUrl)}
                 target="_blank"
               >
@@ -114,10 +109,10 @@ export const Website = ({ page }: { page?: string }) => {
             </div>
           </div>
           <div className="flex w-full items-center justify-center">
-            <p className="text-black text-xs sm:text-base">
+            <p className="text-black text-xs sm:text-base dark:text-white">
               Built with ❤️ by{" "}
               <Link
-                className="font-bold text-black"
+                className="font-bold text-black dark:text-white"
                 href={new URL("https://builders.garden")}
                 target="_blank"
               >
