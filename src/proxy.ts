@@ -22,7 +22,6 @@ export default async function proxy(req: NextRequest) {
       headers: await headers(),
     });
     if (!session) {
-      console.log("No session, redirecting to sign-in", req.nextUrl.pathname);
       return NextResponse.redirect(new URL("/", req.url));
     }
     return NextResponse.next();

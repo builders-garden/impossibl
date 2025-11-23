@@ -22,7 +22,7 @@ export async function generateMetadata({
 
   const miniapp = {
     version: "next",
-    imageUrl,
+    imageUrl: `${appUrl}/images/feed-3x2.png`,
     button: {
       title: `Launch ${env.NEXT_PUBLIC_APPLICATION_NAME}`,
       action: {

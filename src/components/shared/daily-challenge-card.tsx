@@ -46,7 +46,7 @@ export const DailyChallengeCard = ({
       asChild
       className="h-auto w-full rounded-md bg-[#3bef63] px-2 py-4 hover:bg-[#3bef63]/90"
     >
-      <Link className="w-full" href="/daily">
+      <Link className="w-full" href="/play">
         <span className="font-extrabold font-oxanium text-2xl text-black leading-[28px] tracking-[-0.5px]">
           PLAY NOW
         </span>

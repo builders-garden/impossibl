@@ -114,7 +114,7 @@ export function getFarcasterManifest() {
       name: miniappName,
       iconUrl: `${appUrl}/images/icon.png`,
       homeUrl: appUrl,
-      imageUrl: `${appUrl}/images/feed.png`,
+      imageUrl: `${appUrl}/images/feed-3x2.png`,
       buttonTitle: "Open",
       splashImageUrl: `${appUrl}/images/splash.png`,
       splashBackgroundColor: "#FFFFFF",

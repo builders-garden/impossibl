@@ -233,15 +233,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // If we have a user from the initial fetch, mark signed in
-    if (user) {
+    // If we're in miniapp, prefer farcaster as method
+    if (user && isInFarcasterMiniApp) {
       setIsSignedIn(true);
-      // If we're in miniapp, prefer farcaster as method
-      if (isInFarcasterMiniApp) {
-        setAuthMethod("farcaster");
-      }
-      if (isInWorldcoinMiniApp) {
-        setAuthMethod("worldcoin");
-      }
+      setAuthMethod("farcaster");
       setHasTriedInitialAuth(true);
       return;
     }
@@ -260,6 +255,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Auto sign-in with Worldcoin if in miniapp and not authenticated
+    // NOTE: This will execute every time the app is opened in Worldcoin,
+    // even if the user has a session, ensuring we verify the wallet each time.
     if (
       isInWorldcoinMiniApp &&
       !authMethod &&

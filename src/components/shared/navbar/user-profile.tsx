@@ -52,7 +52,7 @@ export const UserProfile = () => {
               pfpUrl ? (
                 <UserAvatar avatarUrl={pfpUrl} className="size-8" size="sm" />
               ) : (
-                <div className="size-7 rounded-full text-muted-foreground text-sm">
+                <div className="flex size-8 items-center justify-center rounded-full text-muted-foreground text-sm">
                   {user?.name ? getInitials(user.name) : ""}
                 </div>
               )

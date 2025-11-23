@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { LeaderboardPage } from "@/components/pages/leaderboard";
 import { OG_IMAGE_SIZE } from "@/lib/constants";
+import { getActiveDailyTournament } from "@/lib/database/queries/tournament.query";
 import { env } from "@/lib/env";
 
 const appUrl = env.NEXT_PUBLIC_URL;
@@ -66,6 +68,10 @@ export async function generateMetadata({
   };
 }
 
-export default function Leaderboard() {
-  return <LeaderboardPage />;
+export default async function Leaderboard() {
+  const tournament = await getActiveDailyTournament();
+  if (!tournament) {
+    notFound();
+  }
+  return <LeaderboardPage tournament={tournament} />;
 }

@@ -1,4 +1,4 @@
-import { CheckCircle, CheckIcon } from "lucide-react";
+import { CheckCircle, CheckIcon, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { ShareButton } from "@/components/shared/share-button";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { copyToClipboard } from "@/utils";
 type SuccessGameCardProps = {
   gameLink: string;
   buyInAmount: string;
+  isLoading: boolean;
   timeLimit: string;
   onShare: () => void;
 };
@@ -16,6 +17,7 @@ export function SuccessGameCard({
   gameLink,
   buyInAmount,
   timeLimit,
+  isLoading,
   onShare,
 }: SuccessGameCardProps) {
   const [isCopied, setIsCopied] = useState(false);
@@ -30,10 +32,14 @@ export function SuccessGameCard({
       {/* Success Header */}
       <div className="flex flex-col items-center gap-3">
         <div className="flex items-center justify-center rounded-full p-1 text-blue-500">
-          <CheckCircle className="size-10" />
+          {isLoading ? (
+            <Loader2Icon className="size-10 animate-spin" />
+          ) : (
+            <CheckCircle className="size-10" />
+          )}
         </div>
         <h2 className="text-center font-bold font-orbitron text-4xl text-white">
-          Game Created!
+          {isLoading ? "Creating Game..." : "Game Created!"}
         </h2>
         <p className="text-center font-medium font-orbitron text-white text-xl">
           Share this link with friends to join the game

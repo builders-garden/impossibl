@@ -8,7 +8,13 @@ import { UserProfile } from "./user-profile";
 
 type NavbarProps = {
   title?: string;
-  link?: "/" | "/new" | "/daily" | `/profile/${string}` | "/leaderboard";
+  link?:
+    | "/"
+    | "/new"
+    | "/play"
+    | `/play/${string}`
+    | `/profile/${string}`
+    | "/leaderboard";
   showBackButton?: boolean;
 };
 

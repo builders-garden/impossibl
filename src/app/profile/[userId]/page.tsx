@@ -28,7 +28,7 @@ export async function generateMetadata({
     : `${appUrl}/images/feed.png`;
   const farcasterImageUrl = userId
     ? `${appUrl}/api/og/profile/${userId}?ar=3x2`
-    : `${appUrl}/images/feed.png`;
+    : `${appUrl}/images/feed-3x2.png`;
 
   const miniapp = {
     version: "next",

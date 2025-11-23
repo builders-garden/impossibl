@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { DailyPage } from "@/components/pages/daily";
+import { TournamentPage } from "@/components/pages/tournament";
 import { OG_IMAGE_SIZE } from "@/lib/constants";
 import { getActiveDailyTournament } from "@/lib/database/queries/tournament.query";
 import { env } from "@/lib/env";
@@ -24,13 +24,13 @@ export async function generateMetadata({
 
   const miniapp = {
     version: "next",
-    imageUrl,
+    imageUrl: `${appUrl}/images/feed-3x2.png`,
     button: {
       title: `Launch ${env.NEXT_PUBLIC_APPLICATION_NAME}`,
       action: {
         type: "launch_miniapp",
         name: env.NEXT_PUBLIC_APPLICATION_NAME,
-        url: `${appUrl}/daily${
+        url: `${appUrl}/play${
           searchParamsString ? `?${searchParamsString}` : ""
         }`,
         splashImageUrl: `${appUrl}/images/splash.png`,
@@ -73,5 +73,5 @@ export default async function Daily() {
   if (!tournament) {
     redirect("/");
   }
-  return <DailyPage tournament={tournament} />;
+  return <TournamentPage tournament={tournament} />;
 }

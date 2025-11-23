@@ -155,8 +155,8 @@ export const tournament = sqliteTable("tournament", {
   winner: text("winner").references(() => user.id, { onDelete: "cascade" }), // only for group tournaments
   startDate: integer("start_date", { mode: "timestamp_ms" }).notNull(),
   endDate: integer("end_date", { mode: "timestamp_ms" }).notNull(),
-  merkleRoot: text("merkle_root", { mode: "json" }).notNull(),
-  merkleValues: text("merkle_values", { mode: "json" }).notNull(),
+  merkleRoot: text("merkle_root", { mode: "json" }),
+  merkleValues: text("merkle_values", { mode: "json" }),
   prizePool: integer("prize_pool").notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
@@ -171,9 +171,12 @@ export const userPrize = sqliteTable(
       .notNull()
       .references(() => tournament.id, { onDelete: "cascade" }),
     prize: text("prize").notNull(),
-    attempts: integer("attempts").notNull().default(0),
-    wonAtAttempt: integer("won_at_attempt"),
+    attempts: integer("attempts").notNull().default(0).notNull(),
+    wonAtAttempt: integer("won_at_attempt").default(0).notNull(),
+    depositTxHash: text("deposit_tx_hash"),
+    depositAmount: text("deposit_amount").default("0"),
     claimedTxHash: text("claimed_tx_hash"),
+    claimedAmount: text("claimed_amount").default("0"),
     createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" })
       .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)

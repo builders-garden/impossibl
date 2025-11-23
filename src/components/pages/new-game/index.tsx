@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Website } from "@/components/pages/website";
 import { Navbar } from "@/components/shared/navbar";
 import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
+import { useCreateGroupTournamentMutation } from "@/hooks/use-create-group-tournament";
 import { env } from "@/lib/env";
 import { SetupGameCard } from "./setup-game-card";
 import { SuccessGameCard } from "./success-game-card";
@@ -16,7 +17,24 @@ export function NewGamePage() {
   const [timeLimitValue, setTimeLimitValue] = useState("1");
   const [timeLimitUnit, setTimeLimitUnit] = useState("DAY");
   const [isGameCreated, setIsGameCreated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [gameLink, setGameLink] = useState("");
+  const { mutate: createGroupTournament, data: createGroupData } =
+    useCreateGroupTournamentMutation();
+
+  useEffect(() => {
+    if (createGroupData) {
+      console.log("createGroupTournamentData", createGroupData);
+      if (createGroupData.status === "ok") {
+        setIsGameCreated(true);
+        setGameLink(
+          `${env.NEXT_PUBLIC_URL}/play/${createGroupData.data.tournamentId}`
+        );
+        setIsLoading(false);
+        setIsGameCreated(true);
+      }
+    }
+  }, [createGroupData]);
 
   if (isInBrowser) {
     return <Website page="new" />;
@@ -27,11 +45,9 @@ export function NewGamePage() {
   }
 
   const handleCreateGame = () => {
-    // Simulate game creation
-    const mockGameId = Math.random().toString(36).substring(2, 8);
-    const link = `${env.NEXT_PUBLIC_URL}/play/${mockGameId}`;
-    setGameLink(link);
-    setIsGameCreated(true);
+    setIsLoading(true);
+    console.log("createGroupTournament");
+    createGroupTournament();
   };
 
   const handleShare = () => {
@@ -59,6 +75,7 @@ export function NewGamePage() {
           <SuccessGameCard
             buyInAmount={buyInAmount}
             gameLink={gameLink}
+            isLoading={isLoading}
             onShare={handleShare}
             timeLimit={`${timeLimitValue} ${timeLimitUnit}`}
           />

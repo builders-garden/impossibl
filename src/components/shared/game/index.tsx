@@ -241,13 +241,7 @@ type GameProps = {
   error: string | null;
   ready: boolean;
 };
-const GameContent = ({
-  attempts,
-  onAttempt,
-  loading,
-  error,
-  ready,
-}: GameProps) => {
+const GameContent = ({ attempts, onAttempt, ready }: GameProps) => {
   const { app } = useApplication();
   const worldRef = useRef<Container>(null);
   const playerRef = useRef<Graphics>(null);
@@ -585,7 +579,7 @@ const GameContent = ({
         />
       )}
 
-      {loading && (
+      {/* {loading && (
         <pixiText
           anchor={0.5}
           style={textStyle}
@@ -603,7 +597,7 @@ const GameContent = ({
           x={app.screen.width / 2}
           y={app.screen.height / 2}
         />
-      )}
+      )} */}
     </>
   );
 };

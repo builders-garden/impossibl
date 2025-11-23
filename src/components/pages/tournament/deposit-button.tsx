@@ -2,13 +2,16 @@
 
 import { DaimoPayButton } from "@daimo/pay";
 import { WorldPayButton } from "@daimo/pay/world";
+import { MiniKit } from "@worldcoin/minikit-js";
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
+import { zeroAddress } from "viem";
 import { base, worldchain } from "viem/chains";
 import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
+import { useSaveDepositMutation } from "@/hooks/use-save-deposit";
 import {
   BASE_USDC_ADDRESS,
   IMPOSSIBLE_ADDRESS,
@@ -16,20 +19,44 @@ import {
 } from "@/lib/constants";
 import { encodeJoinTournamentData } from "@/lib/contracts/utils";
 import { env } from "@/lib/env";
+import type {
+  DaimoPayPaymentBouncedEvent,
+  DaimoPayPaymentCompletedEvent,
+} from "@/types/daimo.type";
 
-export const DepositButton = () => {
+export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
   const { address } = useAccount();
+  const worldWalletAddress = MiniKit.user.walletAddress;
   const { user } = useAuth();
   const { isInWorldcoinMiniApp } = useEnvironment();
   const [paymentStarted, setPaymentStarted] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const { mutate: saveUserDeposit } = useSaveDepositMutation();
 
   const amount = "1.00"; // $1.00
   // Generate call data for joinTournament with placeholder values
   const toCallData = encodeJoinTournamentData(
-    BigInt(0), // Placeholder tournamentId
-    (address || "0x0000000000000000000000000000000000000000") as `0x${string}`
+    BigInt(tournamentId),
+    (worldWalletAddress || address || zeroAddress) as `0x${string}`
   );
+
+  const handlePaymentBounced = (e: DaimoPayPaymentBouncedEvent) => {
+    setPaymentStarted(false);
+    setPaymentCompleted(false);
+    console.error("Payment bounced", e);
+  };
+
+  const handlePaymentCompleted = (e: DaimoPayPaymentCompletedEvent) => {
+    if (!user) {
+      return;
+    }
+    saveUserDeposit({
+      tournamentId,
+      txHash: e.txHash,
+      amount,
+    });
+    setPaymentCompleted(true);
+  };
 
   if (isInWorldcoinMiniApp) {
     return (
@@ -39,13 +66,10 @@ export const DepositButton = () => {
           application: "impossibl",
           type: "daily_deposit",
           userId: user?.id || "",
-          walletAddress: address || "",
+          walletAddress: worldWalletAddress || address || zeroAddress,
         }}
-        onPaymentBounced={() => {
-          setPaymentStarted(false);
-          setPaymentCompleted(false);
-        }}
-        onPaymentCompleted={() => setPaymentCompleted(true)}
+        onPaymentBounced={handlePaymentBounced}
+        onPaymentCompleted={handlePaymentCompleted}
         onPaymentStarted={() => setPaymentStarted(true)}
         toAddress={IMPOSSIBLE_ADDRESS}
         toCallData={toCallData}
@@ -72,13 +96,10 @@ export const DepositButton = () => {
         application: "impossibl",
         type: "daily_deposit",
         userId: user?.id || "",
-        walletAddress: address || "",
+        walletAddress: address || zeroAddress,
       }}
-      onPaymentBounced={() => {
-        setPaymentStarted(false);
-        setPaymentCompleted(false);
-      }}
-      onPaymentCompleted={() => setPaymentCompleted(true)}
+      onPaymentBounced={handlePaymentBounced}
+      onPaymentCompleted={handlePaymentCompleted}
       onPaymentStarted={() => setPaymentStarted(true)}
       preferredChains={[base.id]}
       preferredTokens={[{ chain: base.id, address: BASE_USDC_ADDRESS }]}
@@ -140,7 +161,7 @@ const DaimoPayButtonContent = ({
           </span>
         ) : (
           <span className="font-extrabold font-oxanium text-2xl text-black leading-[28px] tracking-[-0.5px]">
-            DEPOSIT ${amount}
+            DEPOSIT {Number.parseFloat(amount).toFixed(0)} WLD
           </span>
         )}
       </Button>

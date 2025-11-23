@@ -45,7 +45,7 @@ export function generateMetadata(): Metadata {
     other: {
       "fc:miniapp": JSON.stringify({
         version: "next",
-        imageUrl: `${appUrl}/images/feed.png`,
+        imageUrl: `${appUrl}/images/feed-3x2.png`,
         button: {
           title: "Launch App",
           action: {
