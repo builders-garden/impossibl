@@ -240,14 +240,25 @@ type GameProps = {
   loading: boolean;
   error: string | null;
   ready: boolean;
+  onGameStateChange?: (state: "playing" | "won" | "paused") => void;
 };
-const GameContent = ({ attempts, onAttempt, ready }: GameProps) => {
+const GameContent = ({
+  attempts,
+  onAttempt,
+  ready,
+  onGameStateChange,
+}: GameProps) => {
   const { app } = useApplication();
   const worldRef = useRef<Container>(null);
   const playerRef = useRef<Graphics>(null);
   const [gameState, setGameState] = useState<"playing" | "won" | "paused">(
     "playing"
   );
+
+  // Notify parent of game state changes
+  useEffect(() => {
+    onGameStateChange?.(gameState);
+  }, [gameState, onGameStateChange]);
 
   // Game state in refs to avoid re-renders during game loop
   const state = useRef({
@@ -559,15 +570,7 @@ const GameContent = ({ attempts, onAttempt, ready }: GameProps) => {
         </pixiContainer>
       )}
 
-      {gameState === "won" && (
-        <pixiText
-          anchor={0.5}
-          style={textStyle}
-          text="YOU WIN!"
-          x={app.screen.width / 2}
-          y={app.screen.height / 2}
-        />
-      )}
+      {/* Victory text removed - handled by external dialog */}
 
       {!ready && (
         <pixiText
@@ -608,6 +611,7 @@ export default function Game({
   loading,
   error,
   ready,
+  onGameStateChange,
 }: GameProps) {
   const [mounted, setMounted] = useState(false);
   const parentRef = useRef(null);
@@ -631,6 +635,7 @@ export default function Game({
           error={error}
           loading={loading}
           onAttempt={onAttempt}
+          onGameStateChange={onGameStateChange}
           ready={ready}
         />
       </Application>

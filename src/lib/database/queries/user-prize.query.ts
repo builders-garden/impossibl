@@ -38,7 +38,7 @@ export async function saveUserAttempt({
         attempts: sql`${userPrize.attempts} + 1`,
         wonAtAttempt: hasWon
           ? sql`CASE 
-              WHEN ${userPrize.wonAtAttempt} > 0 THEN LEAST(${userPrize.wonAtAttempt}, ${userPrize.attempts} + 1)
+              WHEN ${userPrize.wonAtAttempt} > 0 THEN MIN(${userPrize.wonAtAttempt}, ${userPrize.attempts} + 1)
               ELSE ${userPrize.attempts} + 1
             END`
           : userPrize.wonAtAttempt, // Keep existing value if not winning this time

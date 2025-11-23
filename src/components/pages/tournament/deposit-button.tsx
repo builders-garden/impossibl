@@ -155,7 +155,7 @@ const DaimoPayButtonContent = ({
   // };
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className="flex w-full flex-col items-end gap-2">
       <Button
         className="h-auto w-full rounded-md bg-[#3bef63] px-2 py-4 hover:bg-[#3bef63]/90"
         disabled={paymentStarted || paymentCompleted}
