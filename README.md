@@ -1,4 +1,4 @@
-## Impossibl 
+## Impossibl
 
 Impossibl game for worldcoin
 
