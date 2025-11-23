@@ -8,6 +8,7 @@ import {
   formatUnits,
   getAddress,
   http,
+  parseEventLogs,
   parseUnits,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -21,6 +22,7 @@ import {
   userPrize,
   walletAddress,
 } from "@/lib/database/db.schema";
+import { createTournament } from "@/lib/database/queries/tournament.query";
 import { env } from "@/lib/env";
 
 // Create a public client for Worldchain
@@ -255,14 +257,41 @@ export async function GET(_request: NextRequest) {
       })
       .where(eq(tournament.id, tournamentId));
 
-    // TODO generate tournmanent for new day
+    // generate and save global tournament for new day
     const account = privateKeyToAccount(env.BACKEND_PRIVATE_KEY);
-    await worldchainWalletClient.writeContract({
+    const txHash = await worldchainWalletClient.writeContract({
       account,
       address: IMPOSSIBLE_ADDRESS as Address,
       abi: impossibleAbi,
       functionName: "createGlobalTournament",
       args: [getAddress(WORLD_WLD_ADDRESS as Address), parseUnits("1", 18)],
+    });
+
+    console.log("txHash", txHash);
+    const txReceipt = await worldchainClient.waitForTransactionReceipt({
+      hash: txHash,
+    });
+    console.log("txReceipt found");
+    const tournamentCreatedEvent = parseEventLogs({
+      abi: impossibleAbi,
+      logs: txReceipt.logs,
+      eventName: "TournamentCreated",
+    });
+    const newTournamentId = tournamentCreatedEvent[0].args.tournamentId;
+    console.log("tournamentId", tournamentId);
+
+    // save new tournament in db
+    const getTodayDayMonth = new Date().toISOString().split("T")[0];
+    await createTournament({
+      id: newTournamentId.toString(),
+      name: `Daily #${getTodayDayMonth}`,
+      type: 0,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days from now
+      merkleRoot: null,
+      merkleValues: null,
+      prizePool: 1,
+      createdAt: new Date(),
     });
 
     return NextResponse.json({
