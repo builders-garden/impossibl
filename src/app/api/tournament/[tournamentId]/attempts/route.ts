@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { type Address, createWalletClient, getAddress, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { worldchain } from "viem/chains";
-import { IMPOSSIBLE_ADDRESS } from "@/lib/constants";
+import { WORLD_IMPOSSIBLE_ADDRESS } from "@/lib/constants";
 import { impossibleAbi } from "@/lib/contracts/abi";
 import { getTournamentById } from "@/lib/database/queries/tournament.query";
 import { getUserFromId } from "@/lib/database/queries/user.query";
@@ -64,7 +64,7 @@ export async function POST(
         transport: http(),
       });
       const distributePrize = await worldchainWalletClient.writeContract({
-        address: IMPOSSIBLE_ADDRESS as Address,
+        address: WORLD_IMPOSSIBLE_ADDRESS as Address,
         abi: impossibleAbi,
         functionName: "setGroupWinner",
         args: [

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   type Address,
   createPublicClient,
@@ -7,20 +7,28 @@ import {
   http,
   parseEventLogs,
   parseUnits,
+  type TransactionReceipt,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { worldchain } from "viem/chains";
-import { IMPOSSIBLE_ADDRESS, WORLD_WLD_ADDRESS } from "@/lib/constants";
+import { celo, worldchain } from "viem/chains";
+import {
+  CELO_CELO_ADDRESS,
+  CELO_IMPOSSIBLE_ADDRESS,
+  WORLD_IMPOSSIBLE_ADDRESS,
+  WORLD_WLD_ADDRESS,
+} from "@/lib/constants";
 import { impossibleAbi } from "@/lib/contracts/abi";
 import { createTournament } from "@/lib/database/queries/tournament.query";
 import { env } from "@/lib/env";
 import type { CreateGroupTournamentReturnSchema } from "@/types/create-group-tournament.type";
 
-export async function POST(): Promise<
-  NextResponse<CreateGroupTournamentReturnSchema>
-> {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<CreateGroupTournamentReturnSchema>> {
   try {
-    console.log("createGroupTournament");
+    const body = await request.json();
+    const isInWorldcoin = body.isInWorldcoin;
+    console.log("createGroupTournament", isInWorldcoin);
 
     // Create wallet client for Worldchain
     const worldchainWalletClient = createWalletClient({
@@ -31,23 +39,49 @@ export async function POST(): Promise<
       chain: worldchain,
       transport: http(),
     });
+    // Create wallet client for Celo
+    const celoWalletClient = createWalletClient({
+      chain: celo,
+      transport: http(),
+    });
+    const celoClient = createPublicClient({
+      chain: celo,
+      transport: http(),
+    });
 
     // Create account from backend private key
     const account = privateKeyToAccount(env.BACKEND_PRIVATE_KEY);
 
     // Call createGroupTournament function
-    const txHash = await worldchainWalletClient.writeContract({
-      account,
-      address: IMPOSSIBLE_ADDRESS as Address,
-      abi: impossibleAbi,
-      functionName: "createGroupTournament",
-      args: [getAddress(WORLD_WLD_ADDRESS as Address), parseUnits("1", 18)],
-    });
+    let txHash: `0x${string}`;
+    let txReceipt: TransactionReceipt;
+    if (isInWorldcoin) {
+      txHash = await worldchainWalletClient.writeContract({
+        account,
+        address: WORLD_IMPOSSIBLE_ADDRESS as Address,
+        abi: impossibleAbi,
+        functionName: "createGroupTournament",
+        args: [getAddress(WORLD_WLD_ADDRESS as Address), parseUnits("1", 18)],
+      });
 
-    console.log("txHash", txHash);
-    const txReceipt = await worldchainClient.waitForTransactionReceipt({
-      hash: txHash,
-    });
+      console.log("txHash", txHash);
+      txReceipt = await worldchainClient.waitForTransactionReceipt({
+        hash: txHash,
+      });
+    } else {
+      txHash = await celoWalletClient.writeContract({
+        account,
+        address: CELO_IMPOSSIBLE_ADDRESS as Address,
+        abi: impossibleAbi,
+        functionName: "createGroupTournament",
+        args: [getAddress(CELO_CELO_ADDRESS as Address), parseUnits("1", 18)],
+      });
+
+      console.log("txHash", txHash);
+      txReceipt = await celoClient.waitForTransactionReceipt({
+        hash: txHash,
+      });
+    }
     console.log("txReceipt found");
     const tournamentCreatedEvent = parseEventLogs({
       abi: impossibleAbi,

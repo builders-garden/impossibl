@@ -12,7 +12,7 @@ import { SuccessGameCard } from "./success-game-card";
 
 export function NewGamePage() {
   const { user, isAuthenticated } = useAuth();
-  const { isInBrowser } = useEnvironment();
+  const { isInBrowser, isInWorldcoinMiniApp } = useEnvironment();
   const [buyInAmount, setBuyInAmount] = useState("1.00");
   const [timeLimitValue, setTimeLimitValue] = useState("1");
   const [timeLimitUnit, setTimeLimitUnit] = useState("DAY");
@@ -20,7 +20,7 @@ export function NewGamePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [gameLink, setGameLink] = useState("");
   const { mutate: createGroupTournament, data: createGroupData } =
-    useCreateGroupTournamentMutation();
+    useCreateGroupTournamentMutation({ isInWorldcoin: isInWorldcoinMiniApp });
 
   useEffect(() => {
     if (createGroupData) {

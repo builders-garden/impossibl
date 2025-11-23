@@ -12,6 +12,7 @@ export const StatsCard = ({
   tournamentId,
   className,
   onPlay,
+  isInWorld,
   userPrizesLength,
 }: {
   prizePool: number;
@@ -22,6 +23,7 @@ export const StatsCard = ({
   tournamentId: string;
   className?: string;
   onPlay: () => void;
+  isInWorld: boolean;
   userPrizesLength: number;
 }) => {
   const handleRefresh = () => {
@@ -70,7 +72,9 @@ export const StatsCard = ({
       </div>
 
       {/* Deposit Button */}
-      {hasDeposited ? null : <DepositButton tournamentId={tournamentId} />}
+      {hasDeposited ? null : (
+        <DepositButton isInWorld={isInWorld} tournamentId={tournamentId} />
+      )}
 
       {/* Play Button (Disabled/Opacity) */}
       <div className="flex w-full flex-col items-end justify-end gap-2">

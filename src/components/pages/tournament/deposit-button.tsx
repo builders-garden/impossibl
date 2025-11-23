@@ -6,15 +6,15 @@ import { MiniKit } from "@worldcoin/minikit-js";
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { zeroAddress } from "viem";
-import { base, worldchain } from "viem/chains";
+import { celo, worldchain } from "viem/chains";
 import { useAccount } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
 import { useSaveDepositMutation } from "@/hooks/use-save-deposit";
 import {
-  BASE_USDC_ADDRESS,
-  IMPOSSIBLE_ADDRESS,
+  CELO_CELO_ADDRESS,
+  WORLD_IMPOSSIBLE_ADDRESS,
   WORLD_WLD_ADDRESS,
 } from "@/lib/constants";
 import { encodeJoinTournamentData } from "@/lib/contracts/utils";
@@ -24,7 +24,13 @@ import type {
   DaimoPayPaymentCompletedEvent,
 } from "@/types/daimo.type";
 
-export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
+export const DepositButton = ({
+  tournamentId,
+  isInWorld,
+}: {
+  tournamentId: string;
+  isInWorld: boolean;
+}) => {
   const { address } = useAccount();
   const worldWalletAddress = MiniKit.user.walletAddress;
   const { user } = useAuth();
@@ -78,7 +84,7 @@ export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
           onPaymentBounced={handlePaymentBounced}
           onPaymentCompleted={handlePaymentCompleted}
           onPaymentStarted={() => setPaymentStarted(true)}
-          toAddress={IMPOSSIBLE_ADDRESS}
+          toAddress={WORLD_IMPOSSIBLE_ADDRESS}
           toCallData={toCallData}
           toChain={worldchain.id}
           toToken={WORLD_WLD_ADDRESS}
@@ -87,6 +93,7 @@ export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
           {({ show }) => (
             <DaimoPayButtonContent
               amount={amount}
+              isInWorld={isInWorld}
               paymentCompleted={paymentCompleted}
               paymentStarted={paymentStarted}
               show={show}
@@ -113,18 +120,19 @@ export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
         onPaymentBounced={handlePaymentBounced}
         onPaymentCompleted={handlePaymentCompleted}
         onPaymentStarted={() => setPaymentStarted(true)}
-        preferredChains={[base.id]}
-        preferredTokens={[{ chain: base.id, address: BASE_USDC_ADDRESS }]}
-        toAddress={IMPOSSIBLE_ADDRESS}
+        preferredChains={[celo.id]}
+        preferredTokens={[{ chain: celo.id, address: CELO_CELO_ADDRESS }]}
+        toAddress={WORLD_IMPOSSIBLE_ADDRESS}
         toCallData={toCallData}
-        toChain={worldchain.id}
-        toToken={WORLD_WLD_ADDRESS}
+        toChain={celo.id}
+        toToken={CELO_CELO_ADDRESS}
         toUnits={amount}
       >
         {({ show, hide }) => (
           <DaimoPayButtonContent
             amount={amount}
             hide={hide}
+            isInWorld={isInWorld}
             paymentCompleted={paymentCompleted}
             paymentStarted={paymentStarted}
             show={show}
@@ -138,12 +146,14 @@ export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
 const DaimoPayButtonContent = ({
   show,
   // hide,
+  isInWorld,
   paymentStarted,
   paymentCompleted,
   amount,
 }: {
   show: () => void;
   hide?: () => void;
+  isInWorld: boolean;
   paymentStarted: boolean;
   paymentCompleted: boolean;
   amount: string;
@@ -174,7 +184,8 @@ const DaimoPayButtonContent = ({
           </span>
         ) : (
           <span className="font-extrabold font-oxanium text-2xl text-black leading-[28px] tracking-[-0.5px]">
-            DEPOSIT {Number.parseFloat(amount).toFixed(0)} WLD
+            DEPOSIT {Number.parseFloat(amount).toFixed(0)}{" "}
+            {isInWorld ? "WLD" : "CELO"}
           </span>
         )}
       </Button>

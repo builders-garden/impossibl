@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { type Address, createPublicClient, http } from "viem";
 import { worldchain } from "viem/chains";
-import { IMPOSSIBLE_ADDRESS } from "@/lib/constants";
+import { WORLD_IMPOSSIBLE_ADDRESS } from "@/lib/constants";
 import { impossibleAbi } from "@/lib/contracts/abi";
 
 // Create a public client for Base chain
@@ -36,7 +36,7 @@ export const useGetTournamentOnchain = ({
     }> => {
       try {
         const tournament = await worldClient.readContract({
-          address: IMPOSSIBLE_ADDRESS as Address,
+          address: WORLD_IMPOSSIBLE_ADDRESS as Address,
           abi: impossibleAbi,
           functionName: "getTournament",
           args: [BigInt(tournamentId)],

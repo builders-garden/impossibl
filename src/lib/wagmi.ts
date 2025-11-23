@@ -1,7 +1,7 @@
 import { getDefaultConfig } from "@daimo/pay";
 import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
 import { http } from "viem";
-import { basePreconf, mainnet, worldchain } from "viem/chains";
+import { celo, worldchain } from "viem/chains";
 import { createConfig } from "wagmi";
 import { coinbaseWallet } from "wagmi/connectors";
 import { env } from "@/lib/env";
@@ -14,10 +14,9 @@ export const wagmiConfigMiniApp = createConfig(
     appDescription: env.NEXT_PUBLIC_APPLICATION_DESCRIPTION,
     appUrl: env.NEXT_PUBLIC_URL,
     ssr: undefined,
-    chains: [mainnet, basePreconf, worldchain],
+    chains: [celo, worldchain],
     transports: {
-      [mainnet.id]: http(),
-      [basePreconf.id]: http(),
+      [celo.id]: http(),
       [worldchain.id]: http(),
     },
     connectors: [miniAppConnector(), coinbaseWallet()],

@@ -6,9 +6,9 @@ import { env } from "@/lib/env";
 import { cn } from "@/utils";
 
 export const Website = ({ page }: { page?: string }) => {
-  // const farcasterUrl = `https://farcaster.xyz/?launchFrameUrl=${encodeURIComponent(
-  //   env.NEXT_PUBLIC_URL
-  // )}${page ? `/${encodeURIComponent(page)}` : ""}`;
+  const farcasterUrl = `https://farcaster.xyz/?launchFrameUrl=${encodeURIComponent(
+    env.NEXT_PUBLIC_URL
+  )}${page ? `/${encodeURIComponent(page)}` : ""}`;
 
   // const baseUrl = `cbwallet://miniapp?url=${encodeURIComponent(
   //   env.NEXT_PUBLIC_URL
@@ -64,6 +64,9 @@ export const Website = ({ page }: { page?: string }) => {
               <div className="hidden w-fit rounded-xl border-2 border-black/20 bg-white p-2 backdrop-blur-sm sm:block">
                 <QRCodeSVG className="w-fit rounded-sm" value={worldcoinUrl} />
               </div>
+              <div className="hidden w-fit rounded-xl border-2 border-black/20 bg-white p-2 backdrop-blur-sm sm:block">
+                <QRCodeSVG className="w-fit rounded-sm" value={farcasterUrl} />
+              </div>
             </div>
 
             <div className="flex w-full flex-col gap-4">
@@ -74,6 +77,21 @@ export const Website = ({ page }: { page?: string }) => {
                 target="_blank"
               >
                 <WorldcoinIcon className="h-[148px] w-full" />
+              </Link>
+
+              {/* Open on Farcaster */}
+              <Link
+                className="cursor-pointer rounded-lg border border-[#CECECE] bg-white text-black shadow-xl hover:bg-white/80 dark:text-white"
+                href={new URL(farcasterUrl)}
+                target="_blank"
+              >
+                <Image
+                  alt="Celo on Farcaster"
+                  className="h-[148px] w-full object-contain"
+                  height={60}
+                  src="/images/farcaster-celo.png"
+                  width={148}
+                />
               </Link>
 
               {/* Open on Farcaster 

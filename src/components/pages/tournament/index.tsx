@@ -29,7 +29,7 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
   const { address } = useAccount();
   const worldWalletAddress = MiniKit.user.walletAddress;
   const { user, isAuthenticated } = useAuth();
-  const { isInBrowser } = useEnvironment();
+  const { isInBrowser, isInWorldcoinMiniApp } = useEnvironment();
   const { data: userPrize, isLoading: isLoadingUserPrize } = useGetMyPrize({
     tournamentId: tournament.id,
   });
@@ -116,6 +116,7 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
             ? tournamentOnchainData?.winner !== zeroAddress
             : false
         }
+        isInWorld={isInWorldcoinMiniApp ?? false}
         isLoading={
           isLoadingUserPrize ||
           isLoadingUserPrizes ||

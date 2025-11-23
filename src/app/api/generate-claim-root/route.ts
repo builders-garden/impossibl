@@ -13,7 +13,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { worldchain } from "viem/chains";
-import { IMPOSSIBLE_ADDRESS, WORLD_WLD_ADDRESS } from "@/lib/constants";
+import { WORLD_IMPOSSIBLE_ADDRESS, WORLD_WLD_ADDRESS } from "@/lib/constants";
 import { impossibleAbi } from "@/lib/contracts/abi";
 import { db } from "@/lib/database";
 import {
@@ -115,7 +115,7 @@ export async function GET(_request: NextRequest) {
     let prizePool: number;
     try {
       const contractTournament = await worldchainClient.readContract({
-        address: IMPOSSIBLE_ADDRESS as Address,
+        address: WORLD_IMPOSSIBLE_ADDRESS as Address,
         abi: impossibleAbi,
         functionName: "getTournament",
         args: [BigInt(tournamentId)],
@@ -261,7 +261,7 @@ export async function GET(_request: NextRequest) {
     const account = privateKeyToAccount(env.BACKEND_PRIVATE_KEY);
     const txHash = await worldchainWalletClient.writeContract({
       account,
-      address: IMPOSSIBLE_ADDRESS as Address,
+      address: WORLD_IMPOSSIBLE_ADDRESS as Address,
       abi: impossibleAbi,
       functionName: "createGlobalTournament",
       args: [getAddress(WORLD_WLD_ADDRESS as Address), parseUnits("1", 18)],

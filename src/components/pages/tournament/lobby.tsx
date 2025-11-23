@@ -13,6 +13,7 @@ type TournamentLobbyProps = {
   hasWinner: boolean;
   isLoading: boolean;
   user?: User;
+  isInWorld: boolean;
   myPrize: UserPrize | null;
   userPrizes: (UserPrize & { user: User })[];
   prizePool: number;
@@ -25,6 +26,7 @@ export const TournamentLobby = ({
   hasDeposited,
   hasWinner,
   isLoading,
+  isInWorld,
   onPlay,
   user,
   myPrize,
@@ -56,6 +58,7 @@ export const TournamentLobby = ({
           endAt={new Date(tournament.endDate)}
           hasDeposited={hasDeposited}
           hasWinner={hasWinner}
+          isInWorld={isInWorld}
           isLoading={isLoading}
           onPlay={onPlay}
           prizePool={prizePool}
