@@ -8,9 +8,8 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { worldchain } from "viem/chains";
-import { WORLD_WLD_ADDRESS } from "@/lib/constants";
+import { IMPOSSIBLE_ADDRESS, WORLD_WLD_ADDRESS } from "@/lib/constants";
 import { impossibleAbi } from "@/lib/contracts/abi";
-import { impossibleAddress } from "@/lib/contracts/constant";
 import { env } from "@/lib/env";
 
 export async function POST() {
@@ -27,7 +26,7 @@ export async function POST() {
     // Call createGroupTournament function
     const txHash = await worldchainWalletClient.writeContract({
       account,
-      address: impossibleAddress as Address,
+      address: IMPOSSIBLE_ADDRESS as Address,
       abi: impossibleAbi,
       functionName: "createGroupTournament",
       args: [getAddress(WORLD_WLD_ADDRESS as Address), parseUnits("1", 18)],

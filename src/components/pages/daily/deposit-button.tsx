@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
 import {
   BASE_USDC_ADDRESS,
-  WORLD_DESTINATION_ADDRESS,
+  IMPOSSIBLE_ADDRESS,
   WORLD_WLD_ADDRESS,
 } from "@/lib/constants";
 import { encodeJoinTournamentData } from "@/lib/contracts/utils";
@@ -47,7 +47,7 @@ export const DepositButton = () => {
         }}
         onPaymentCompleted={() => setPaymentCompleted(true)}
         onPaymentStarted={() => setPaymentStarted(true)}
-        toAddress={WORLD_DESTINATION_ADDRESS}
+        toAddress={IMPOSSIBLE_ADDRESS}
         toCallData={toCallData}
         toChain={worldchain.id}
         toToken={WORLD_WLD_ADDRESS}
@@ -82,7 +82,7 @@ export const DepositButton = () => {
       onPaymentStarted={() => setPaymentStarted(true)}
       preferredChains={[base.id]}
       preferredTokens={[{ chain: base.id, address: BASE_USDC_ADDRESS }]}
-      toAddress={WORLD_DESTINATION_ADDRESS}
+      toAddress={IMPOSSIBLE_ADDRESS}
       toCallData={toCallData}
       toChain={worldchain.id}
       toToken={WORLD_WLD_ADDRESS}

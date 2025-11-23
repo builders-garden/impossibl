@@ -6,8 +6,8 @@ import { useState } from "react";
 import { type Address, createPublicClient, http } from "viem";
 import { worldchain } from "viem/chains";
 import { Button } from "@/components/ui/button";
+import { IMPOSSIBLE_ADDRESS } from "@/lib/constants";
 import { impossibleAbi } from "@/lib/contracts/abi";
-import { impossibleAddress } from "@/lib/contracts/constant";
 import { env } from "@/lib/env";
 
 // Create a public client for Worldchain
@@ -43,7 +43,7 @@ export default function DemoTxPage() {
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
         transaction: [
           {
-            address: impossibleAddress as Address,
+            address: IMPOSSIBLE_ADDRESS as Address,
             abi: impossibleAbi,
             functionName: "claimPrize",
             args: [tournamentId, amount, proof],
