@@ -15,10 +15,12 @@ type TournamentLobbyProps = {
   user?: User;
   myPrize: UserPrize | null;
   userPrizes: (UserPrize & { user: User })[];
+  prizePool: number;
   onPlay: () => void;
 };
 
 export const TournamentLobby = ({
+  prizePool,
   tournament,
   hasDeposited,
   hasWinner,
@@ -32,7 +34,7 @@ export const TournamentLobby = ({
   return (
     <div className="flex min-h-screen w-full flex-col items-center gap-8 bg-black px-4 py-6 font-orbitron text-white">
       {/* Header */}
-      <div className="flex w-full items-start justify-start">
+      <div className="flex w-full items-center justify-start gap-2">
         <Link className="relative size-6 shrink-0" href="/">
           <ArrowLeftIcon className="size-full" />
         </Link>
@@ -56,8 +58,9 @@ export const TournamentLobby = ({
           hasWinner={hasWinner}
           isLoading={isLoading}
           onPlay={onPlay}
-          prizePool={tournament.prizePool}
+          prizePool={prizePool}
           tournamentId={tournament.id}
+          userPrizesLength={userPrizes.length}
         />
 
         {/* Leaderboard Card */}

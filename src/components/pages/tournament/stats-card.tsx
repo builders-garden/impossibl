@@ -12,6 +12,7 @@ export const StatsCard = ({
   tournamentId,
   className,
   onPlay,
+  userPrizesLength,
 }: {
   prizePool: number;
   endAt: Date;
@@ -21,6 +22,7 @@ export const StatsCard = ({
   tournamentId: string;
   className?: string;
   onPlay: () => void;
+  userPrizesLength: number;
 }) => {
   const handleRefresh = () => {
     window.location.reload();
@@ -46,7 +48,7 @@ export const StatsCard = ({
         {/* Players Joined */}
         <div className="flex items-center justify-between font-medium font-orbitron text-xl leading-[28px] tracking-[-0.5px]">
           <span>Players Joined</span>
-          <span className="font-extrabold">257</span>
+          <span className="font-extrabold">{userPrizesLength}</span>
         </div>
 
         {/* Prize Pool */}

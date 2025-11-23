@@ -29,6 +29,8 @@ export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
   const worldWalletAddress = MiniKit.user.walletAddress;
   const { user } = useAuth();
   const { isInWorldcoinMiniApp } = useEnvironment();
+
+  const [message, setMessage] = useState<string | null>(null);
   const [paymentStarted, setPaymentStarted] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const { mutate: saveUserDeposit } = useSaveDepositMutation();
@@ -44,6 +46,7 @@ export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
     setPaymentStarted(false);
     setPaymentCompleted(false);
     console.error("Payment bounced", e);
+    setMessage("Payment bounced, please try again");
   };
 
   const handlePaymentCompleted = (e: DaimoPayPaymentCompletedEvent) => {
@@ -60,65 +63,75 @@ export const DepositButton = ({ tournamentId }: { tournamentId: string }) => {
 
   if (isInWorldcoinMiniApp) {
     return (
-      <WorldPayButton.Custom
+      <div className="flex flex-col items-end gap-2">
+        {message && <p className="text-red-500">{message}</p>}
+        <WorldPayButton.Custom
+          appId={env.NEXT_PUBLIC_DAIMO_PAY_ID}
+          metadata={{
+            application: "impossibl",
+            type: "daily_deposit",
+            userId: user?.id || "",
+            tournamentId,
+            amount: Number.parseFloat(amount).toFixed(0),
+            walletAddress: worldWalletAddress || address || zeroAddress,
+          }}
+          onPaymentBounced={handlePaymentBounced}
+          onPaymentCompleted={handlePaymentCompleted}
+          onPaymentStarted={() => setPaymentStarted(true)}
+          toAddress={IMPOSSIBLE_ADDRESS}
+          toCallData={toCallData}
+          toChain={worldchain.id}
+          toToken={WORLD_WLD_ADDRESS}
+          toUnits={amount}
+        >
+          {({ show }) => (
+            <DaimoPayButtonContent
+              amount={amount}
+              paymentCompleted={paymentCompleted}
+              paymentStarted={paymentStarted}
+              show={show}
+            />
+          )}
+        </WorldPayButton.Custom>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-2">
+      {message && <p className="text-red-500">{message}</p>}
+      <DaimoPayButton.Custom
         appId={env.NEXT_PUBLIC_DAIMO_PAY_ID}
         metadata={{
           application: "impossibl",
           type: "daily_deposit",
           userId: user?.id || "",
-          walletAddress: worldWalletAddress || address || zeroAddress,
+          tournamentId,
+          amount: Number.parseFloat(amount).toFixed(0),
+          walletAddress: address || zeroAddress,
         }}
         onPaymentBounced={handlePaymentBounced}
         onPaymentCompleted={handlePaymentCompleted}
         onPaymentStarted={() => setPaymentStarted(true)}
+        preferredChains={[base.id]}
+        preferredTokens={[{ chain: base.id, address: BASE_USDC_ADDRESS }]}
         toAddress={IMPOSSIBLE_ADDRESS}
         toCallData={toCallData}
         toChain={worldchain.id}
         toToken={WORLD_WLD_ADDRESS}
         toUnits={amount}
       >
-        {({ show }) => (
+        {({ show, hide }) => (
           <DaimoPayButtonContent
             amount={amount}
+            hide={hide}
             paymentCompleted={paymentCompleted}
             paymentStarted={paymentStarted}
             show={show}
           />
         )}
-      </WorldPayButton.Custom>
-    );
-  }
-
-  return (
-    <DaimoPayButton.Custom
-      appId={env.NEXT_PUBLIC_DAIMO_PAY_ID}
-      metadata={{
-        application: "impossibl",
-        type: "daily_deposit",
-        userId: user?.id || "",
-        walletAddress: address || zeroAddress,
-      }}
-      onPaymentBounced={handlePaymentBounced}
-      onPaymentCompleted={handlePaymentCompleted}
-      onPaymentStarted={() => setPaymentStarted(true)}
-      preferredChains={[base.id]}
-      preferredTokens={[{ chain: base.id, address: BASE_USDC_ADDRESS }]}
-      toAddress={IMPOSSIBLE_ADDRESS}
-      toCallData={toCallData}
-      toChain={worldchain.id}
-      toToken={WORLD_WLD_ADDRESS}
-      toUnits={amount}
-    >
-      {({ show, hide }) => (
-        <DaimoPayButtonContent
-          amount={amount}
-          hide={hide}
-          paymentCompleted={paymentCompleted}
-          paymentStarted={paymentStarted}
-          show={show}
-        />
-      )}
-    </DaimoPayButton.Custom>
+      </DaimoPayButton.Custom>
+    </div>
   );
 };
 

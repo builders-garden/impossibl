@@ -87,6 +87,7 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
         }
         myPrize={userPrize?.status === "ok" ? userPrize.data : null}
         onPlay={() => setIsPlaying(true)}
+        prizePool={tournament.prizePool}
         tournament={tournament}
         user={user}
         userPrizes={userPrizes?.status === "ok" ? userPrizes.data : []}
