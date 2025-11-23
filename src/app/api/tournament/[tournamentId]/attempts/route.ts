@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
+import { type Address, createWalletClient, getAddress, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { worldchain } from "viem/chains";
+import { impossibleAbi } from "@/lib/contracts/abi";
+import { impossibleAddress } from "@/lib/contracts/constant";
 import { getTournamentById } from "@/lib/database/queries/tournament.query";
+import { getUserFromId } from "@/lib/database/queries/user.query";
 import { saveUserAttempt } from "@/lib/database/queries/user-prize.query";
+import { env } from "@/lib/env";
 import {
   type BackendReturnSchema,
   saveAttemptVariablesSchema as schema,
@@ -42,8 +49,31 @@ export async function POST(
 
     // if tournament type is group (1) and tournament doesnt have winner yet
     if (tournament.type === 1 && hasWon && !tournament.winner) {
-      // TODO sendTx from backend to send prize to winner automatically
-      const claimedTxHash = "0x";
+      // Get user's minikitAddress
+      const user = await getUserFromId(session.user.id);
+      if (!user?.minikitAddress) {
+        return NextResponse.json(
+          { status: "nok", error: "User wallet address not found" },
+          { status: 400 }
+        );
+      }
+
+      // Send transaction from backend to set winner and distribute prize
+      const worldchainWalletClient = createWalletClient({
+        chain: worldchain,
+        transport: http(),
+      });
+      const distributePrize = await worldchainWalletClient.writeContract({
+        address: impossibleAddress as Address,
+        abi: impossibleAbi,
+        functionName: "setGroupWinner",
+        args: [
+          BigInt(tournament.id),
+          getAddress(user.minikitAddress as Address),
+        ],
+        account: privateKeyToAccount(env.BACKEND_PRIVATE_KEY),
+      });
+      const claimedTxHash = distributePrize;
       const userAttempt = await saveUserAttempt({
         userId: session.user.id,
         tournamentId: body.tournamentId,
