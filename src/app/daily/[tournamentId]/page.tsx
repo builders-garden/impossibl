@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { DailyPage } from "@/components/pages/daily";
+import { TournamentPage } from "@/components/pages/tournament";
 import { OG_IMAGE_SIZE } from "@/lib/constants";
-import { getActiveDailyTournament } from "@/lib/database/queries/tournament.query";
+import { getTournamentById } from "@/lib/database/queries/tournament.query";
 import { env } from "@/lib/env";
 
 const appUrl = env.NEXT_PUBLIC_URL;
 
 export async function generateMetadata({
+  params,
   searchParams,
 }: {
+  params: Promise<{ tournamentId: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
+  const { tournamentId } = await params;
   const _searchParams = await searchParams;
   const searchParamsString = Object.entries(_searchParams)
     .map(([key, value]) => `${key}=${value}`)
@@ -20,7 +23,9 @@ export async function generateMetadata({
   const ogTitle = env.NEXT_PUBLIC_APPLICATION_NAME;
   const ogDescription = env.NEXT_PUBLIC_APPLICATION_DESCRIPTION;
 
-  const imageUrl = `${appUrl}/images/feed.png`;
+  const imageUrl = tournamentId
+    ? `${appUrl}/api/og/tournament/${tournamentId}`
+    : `${appUrl}/images/feed.png`;
 
   const miniapp = {
     version: "next",
@@ -30,7 +35,7 @@ export async function generateMetadata({
       action: {
         type: "launch_miniapp",
         name: env.NEXT_PUBLIC_APPLICATION_NAME,
-        url: `${appUrl}/daily${
+        url: `${appUrl}/daily/${tournamentId}${
           searchParamsString ? `?${searchParamsString}` : ""
         }`,
         splashImageUrl: `${appUrl}/images/splash.png`,
@@ -68,10 +73,15 @@ export async function generateMetadata({
   };
 }
 
-export default async function Daily() {
-  const tournament = await getActiveDailyTournament();
+export default async function Tournament({
+  params,
+}: {
+  params: Promise<{ tournamentId: string }>;
+}) {
+  const { tournamentId } = await params;
+  const tournament = await getTournamentById(tournamentId);
   if (!tournament) {
-    redirect("/");
+    redirect("/daily");
   }
-  return <DailyPage tournament={tournament} />;
+  return <TournamentPage tournament={tournament} />;
 }

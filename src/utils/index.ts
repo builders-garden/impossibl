@@ -167,7 +167,7 @@ export const formatWalletAddress = (address: string) =>
  * @param input - Date object, timestamp, or date string
  * @param now - (internal) reference time for testing/override
  */
-export function formatTimeAgo(input: Date | string | number): string {
+export function formatTime(input: Date | string | number): string {
   return formatDistance(input, new Date(), {
     addSuffix: true,
   });

@@ -1,7 +1,8 @@
-import { CheckCircle, CheckIcon, CopyIcon } from "lucide-react";
+import { CheckCircle, CheckIcon } from "lucide-react";
 import { useState } from "react";
 import { ShareButton } from "@/components/shared/share-button";
 import { Button } from "@/components/ui/button";
+import { CopyIcon } from "@/components/ui/copy";
 import { copyToClipboard } from "@/utils";
 
 type SuccessGameCardProps = {

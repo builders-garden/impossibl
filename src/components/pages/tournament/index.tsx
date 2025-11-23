@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Game from "@/components/shared/game";
 import { Navbar } from "@/components/shared/navbar";
 import { useSaveAttemptMutation } from "@/hooks/use-save-attempt";
 import type { Tournament } from "@/lib/database/db.schema";
-import Game from "./game";
+import { TournamentLobby } from "./lobby";
 
 export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
   const [attempts, setAttempts] = useState<number>(0);
   const [isGameWon, setIsGameWon] = useState<boolean>(false);
   const {
@@ -42,9 +44,18 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
     }
   };
 
+  if (!isPlaying) {
+    return (
+      <TournamentLobby
+        onPlay={() => setIsPlaying(true)}
+        tournament={tournament}
+      />
+    );
+  }
+
   return (
     <div className="no-scrollbar flex min-h-screen w-full flex-col items-center gap-4 overflow-y-auto font-orbitron text-white">
-      <Navbar link="/daily" showBackButton title="Daily Challenge" />
+      <Navbar link="/" showBackButton title={tournament.name} />
 
       <div className="flex w-full flex-col gap-4 px-4 pb-12">
         <Game

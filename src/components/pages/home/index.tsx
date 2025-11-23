@@ -4,11 +4,12 @@ import { Website } from "@/components/pages/website";
 import { Navbar } from "@/components/shared/navbar";
 import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
-import { DailyChallengeCard } from "./daily-challenge-card";
+import type { Tournament } from "@/lib/database/db.schema";
+import { DailyChallengeCard } from "../../shared/daily-challenge-card";
 import { GameOptions } from "./game-options";
 import { PlayWithFriendsCard } from "./play-with-friends-card";
 
-export function HomePage() {
+export function HomePage({ tournament }: { tournament: Tournament }) {
   const { user, isAuthenticated } = useAuth();
   const { isInBrowser } = useEnvironment();
 
@@ -27,7 +28,10 @@ export function HomePage() {
 
       {/* Main Content */}
       <div className="flex w-full max-w-md flex-col gap-4 px-4 pb-12">
-        <DailyChallengeCard />
+        <DailyChallengeCard
+          endAt={new Date(tournament.endDate)}
+          prizePool={tournament.prizePool}
+        />
         <PlayWithFriendsCard />
         <GameOptions />
       </div>

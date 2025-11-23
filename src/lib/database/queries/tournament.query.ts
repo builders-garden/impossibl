@@ -1,10 +1,20 @@
-import { eq } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/database";
 import {
   type CreateTournament,
   tournament,
   type UpdateTournament,
 } from "../db.schema";
+
+/**
+ * Get active daily tournament (type 0)
+ */
+export const getActiveDailyTournament = async () => {
+  const res = await db.query.tournament.findFirst({
+    where: and(eq(tournament.type, 0), gte(tournament.endDate, new Date())),
+  });
+  return res ?? null;
+};
 
 /**
  * Get a tournament by id

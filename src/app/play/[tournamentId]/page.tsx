@@ -23,19 +23,24 @@ export async function generateMetadata({
   const ogTitle = env.NEXT_PUBLIC_APPLICATION_NAME;
   const ogDescription = env.NEXT_PUBLIC_APPLICATION_DESCRIPTION;
 
-  const imageUrl = tournamentId
+  const ogImageUrl = tournamentId
     ? `${appUrl}/api/og/tournament/${tournamentId}`
+    : `${appUrl}/images/feed.png`;
+  const farcasterImageUrl = tournamentId
+    ? `${appUrl}/api/og/tournament/${tournamentId}?ar=3x2`
     : `${appUrl}/images/feed.png`;
 
   const miniapp = {
     version: "next",
-    imageUrl,
+    imageUrl: farcasterImageUrl,
     button: {
-      title: `Launch ${env.NEXT_PUBLIC_APPLICATION_NAME}`,
+      title: tournamentId
+        ? "Play Game"
+        : `Launch ${env.NEXT_PUBLIC_APPLICATION_NAME}`,
       action: {
         type: "launch_miniapp",
         name: env.NEXT_PUBLIC_APPLICATION_NAME,
-        url: `${appUrl}/daily/tournament/${tournamentId}${
+        url: `${appUrl}/play/${tournamentId}${
           searchParamsString ? `?${searchParamsString}` : ""
         }`,
         splashImageUrl: `${appUrl}/images/splash.png`,
@@ -52,7 +57,7 @@ export async function generateMetadata({
       type: "website",
       images: [
         {
-          url: imageUrl,
+          url: ogImageUrl,
           width: OG_IMAGE_SIZE.width,
           height: OG_IMAGE_SIZE.height,
         },
@@ -65,7 +70,7 @@ export async function generateMetadata({
       siteId: "1727435024931094528",
       creator: "@builders_garden",
       creatorId: "1727435024931094528",
-      images: [imageUrl],
+      images: [ogImageUrl],
     },
     other: {
       "fc:miniapp": JSON.stringify(miniapp),
@@ -73,7 +78,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function Tournament({
+export default async function Profile({
   params,
 }: {
   params: Promise<{ tournamentId: string }>;
@@ -81,7 +86,8 @@ export default async function Tournament({
   const { tournamentId } = await params;
   const tournament = await getTournamentById(tournamentId);
   if (!tournament) {
-    redirect("/daily");
+    redirect("/");
   }
+
   return <TournamentPage tournament={tournament} />;
 }

@@ -1,8 +1,24 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { cn, formatTime } from "@/utils";
 
-export const DailyChallengeCard = () => (
-  <div className="flex w-full flex-col items-center justify-center gap-4 rounded-lg border-4 border-[#3bef63]/40 bg-[#3bef63]/10 p-6">
+type DailyChallengeCardProps = {
+  prizePool: number;
+  endAt: Date;
+  className?: string;
+};
+
+export const DailyChallengeCard = ({
+  className,
+  prizePool,
+  endAt,
+}: DailyChallengeCardProps) => (
+  <div
+    className={cn(
+      "flex w-full flex-col items-center justify-center gap-4 rounded-lg border-4 border-[#3bef63]/40 bg-[#3bef63]/10 p-6",
+      className
+    )}
+  >
     <h2 className="text-center font-extrabold text-2xl leading-[28px] tracking-[-0.5px]">
       Daily Challenge
     </h2>
@@ -13,11 +29,16 @@ export const DailyChallengeCard = () => (
     <div className="flex w-full flex-col gap-2">
       <div className="flex items-center justify-between font-medium text-xl leading-[28px] tracking-[-0.5px]">
         <span>Prize Pool</span>
-        <span className="text-[#41cb6e]">$257,00</span>
+        <span className="text-[#41cb6e]">
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+          }).format(prizePool)}
+        </span>
       </div>
       <div className="flex items-center justify-between font-medium text-xl leading-[28px] tracking-[-0.5px]">
         <span>Time Left</span>
-        <span className="text-[#d9b608]">14H 13M 24S</span>
+        <span className="text-[#d9b608]">{formatTime(endAt)}</span>
       </div>
     </div>
 

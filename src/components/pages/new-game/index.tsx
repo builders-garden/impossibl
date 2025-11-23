@@ -14,7 +14,7 @@ export function NewGamePage() {
   const { isInBrowser } = useEnvironment();
   const [buyInAmount, setBuyInAmount] = useState("1.00");
   const [timeLimitValue, setTimeLimitValue] = useState("1");
-  const [timeLimitUnit, setTimeLimitUnit] = useState("WEEK");
+  const [timeLimitUnit, setTimeLimitUnit] = useState("DAY");
   const [isGameCreated, setIsGameCreated] = useState(false);
   const [gameLink, setGameLink] = useState("");
 
@@ -29,7 +29,7 @@ export function NewGamePage() {
   const handleCreateGame = () => {
     // Simulate game creation
     const mockGameId = Math.random().toString(36).substring(2, 8);
-    const link = `${env.NEXT_PUBLIC_URL}/g/${mockGameId}`;
+    const link = `${env.NEXT_PUBLIC_URL}/play/${mockGameId}`;
     setGameLink(link);
     setIsGameCreated(true);
   };

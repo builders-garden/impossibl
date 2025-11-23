@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { formatTime } from "@/utils";
 import { DepositButton } from "./deposit-button";
 
-export const StatsCard = () => (
+export const StatsCard = ({
+  prizePool,
+  endAt,
+}: {
+  prizePool: number;
+  endAt: Date;
+}) => (
   <div className="flex flex-col gap-4 rounded-lg border-4 border-[#3bef63]/40 bg-[#3bef63]/10 p-4">
     <div className="flex w-full flex-col gap-2">
       {/* Entry Fee */}
@@ -23,13 +30,18 @@ export const StatsCard = () => (
       {/* Prize Pool */}
       <div className="flex items-center justify-between font-extrabold font-orbitron text-[#41cb6e] text-xl leading-[28px] tracking-[-0.5px]">
         <span>Prize Pool</span>
-        <span className="">$257,00</span>
+        <span className="">
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+          }).format(prizePool)}
+        </span>
       </div>
 
       {/* Time Left */}
       <div className="flex items-center justify-between font-medium font-orbitron text-[#d9b608] text-xl leading-[28px] tracking-[-0.5px]">
         <span>Time Left</span>
-        <span className="font-bold">14H 13M 24S</span>
+        <span className="font-bold">{formatTime(endAt)}</span>
       </div>
     </div>
 
@@ -41,7 +53,7 @@ export const StatsCard = () => (
       asChild
       className="h-auto w-full rounded-md bg-[#3bef63] px-2 py-4 hover:bg-[#3bef63]/30 disabled:bg-[#3bef63]/25"
     >
-      <Link href="/daily/tournament/1">
+      <Link href="/daily/1">
         <span className="font-extrabold font-oxanium text-2xl text-black leading-[28px] tracking-[-0.5px]">
           PLAY
         </span>

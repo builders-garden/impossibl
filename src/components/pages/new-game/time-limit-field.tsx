@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const TIME_UNITS = ["WEEK", "DAY", "MONTH"];
+const TIME_UNITS = ["DAY", "WEEK", "MONTH"];
 
 type TimeLimitFieldProps = {
   value: string;

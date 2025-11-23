@@ -1,17 +1,20 @@
 import { sdk as miniappSdk } from "@farcaster/miniapp-sdk";
-import { CheckIcon, CopyIcon, Share2Icon } from "lucide-react";
+import { MiniKit } from "@worldcoin/minikit-js";
+import { Share2Icon } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import { FarcasterIcon } from "@/components/shared/icons/farcaster-icon";
 import { TwitterIcon } from "@/components/shared/icons/twitter-icon";
 import { Button } from "@/components/ui/button";
+import { CheckIcon } from "@/components/ui/check";
+import { CopyIcon } from "@/components/ui/copy";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MessageCircleIcon } from "@/components/ui/message-circle";
 import { cn, copyToClipboard, createTwitterIntentUrl } from "@/utils";
-import { WorldcoinIcon } from "./icons/worldcoin-icon";
 
 type ShareButtonProps = {
   side?: "left" | "right" | "top" | "bottom" | undefined;
@@ -55,18 +58,19 @@ export const ShareButton = ({
   };
 
   const handleShareToWorldApp = async () => {
-    // TODO: Create World App intent url
-    const worldAppIntentUrl = createTwitterIntentUrl("text", miniappUrl);
     try {
-      miniappSdk.actions.openUrl(worldAppIntentUrl);
-      console.log("success sharing to twitter");
-    } catch (err) {
-      console.log("error using miniappSdk.actions.openUrl", err);
       if (!window) {
+        await handleShareNative();
         return;
       }
-      window.open(worldAppIntentUrl, "_blank");
-      await copyToClipboard(worldAppIntentUrl, setLinkCopied);
+      await copyToClipboard(miniappUrl, setLinkCopied);
+      if (await miniappSdk.isInMiniApp()) {
+        await miniappSdk.actions.openUrl("worldapp://chat");
+        return;
+      }
+      window.open("worldapp://chat", "_blank");
+    } catch (err) {
+      console.log("error using MiniKit.commandsAsync.share", err);
     }
   };
 
@@ -80,25 +84,37 @@ export const ShareButton = ({
       if (!window) {
         return;
       }
-      window.open(twitterIntentUrl, "_blank");
       await copyToClipboard(twitterIntentUrl, setLinkCopied);
+      window.open(twitterIntentUrl, "_blank");
     }
   };
 
   const handleShareNative = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
+    try {
+      if (MiniKit.isInstalled()) {
+        await MiniKit.commandsAsync.share({
           title: navigatorTitle,
           text: navigatorText,
           url: miniappUrl,
         });
-      } catch (err) {
-        // User cancelled or error
-        console.error("user cancelled or error", err);
+      }
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: navigatorTitle,
+            text: navigatorText,
+            url: miniappUrl,
+          });
+        } catch (err) {
+          // User cancelled or error
+          console.error("user cancelled or error", err);
+          await copyToClipboard(miniappUrl, setLinkCopied);
+        }
+      } else {
         await copyToClipboard(miniappUrl, setLinkCopied);
       }
-    } else {
+    } catch (err) {
+      console.error("error using navigator.share", err);
       await copyToClipboard(miniappUrl, setLinkCopied);
     }
   };
@@ -128,8 +144,8 @@ export const ShareButton = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent side={side}>
         <DropdownMenuItem className="gap-2" onClick={handleShareToWorldApp}>
-          <WorldcoinIcon className="h-4 w-[150px] dark:invert" />
-          Share via World App
+          <MessageCircleIcon className="size-4" />
+          Share to chat on World
         </DropdownMenuItem>
         <DropdownMenuItem className="gap-2" onClick={handleShareToFarcaster}>
           <FarcasterIcon className="size-4" />
