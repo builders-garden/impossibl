@@ -1,16 +1,19 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn, formatTime } from "@/utils";
+import { Skeleton } from "../ui/skeleton";
 
 type DailyChallengeCardProps = {
   prizePool: number;
   endAt: Date;
   className?: string;
+  loading?: boolean;
 };
 
 export const DailyChallengeCard = ({
   className,
   prizePool,
+  loading,
   endAt,
 }: DailyChallengeCardProps) => (
   <div
@@ -30,10 +33,14 @@ export const DailyChallengeCard = ({
       <div className="flex items-center justify-between font-medium text-xl leading-[28px] tracking-[-0.5px]">
         <span>Prize Pool</span>
         <span className="text-[#41cb6e]">
-          {new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(prizePool)}
+          {loading ? (
+            <Skeleton className="h-4 w-24 rounded-md" />
+          ) : (
+            new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+            }).format(prizePool)
+          )}
         </span>
       </div>
       <div className="flex items-center justify-between font-medium text-xl leading-[28px] tracking-[-0.5px]">

@@ -3,12 +3,17 @@
 
 import { MiniKit, Permission } from "@worldcoin/minikit-js";
 import { ArrowLeftIcon, BellIcon, RotateCcwIcon } from "lucide-react";
-import { useEffect, useState } from "react";
-import { zeroAddress } from "viem";
+import { useState } from "react";
+import { formatUnits, zeroAddress } from "viem";
 import { useAccount } from "wagmi";
 import Game from "@/components/shared/game";
 import { Navbar } from "@/components/shared/navbar";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/auth-context";
 import { useEnvironment } from "@/contexts/environment-context";
 import { useCheckDeposit } from "@/hooks/use-check-deposit";
@@ -45,6 +50,7 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
   const [attempts, setAttempts] = useState<number>(0);
   const [isGameWon, setIsGameWon] = useState<boolean>(false);
   const [showVictoryDialog, setShowVictoryDialog] = useState(false);
+  const [gameInstanceId, setGameInstanceId] = useState(0);
   const {
     mutate: saveAttempt,
     isPending: isSavingAttempt,
@@ -52,22 +58,23 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
     error: saveAttemptError,
   } = useSaveAttemptMutation();
 
-  useEffect(() => {
+  const handleOnAttempt = (hasWon: boolean) => {
+    setAttempts((prev) => prev + 1);
+    setIsGameWon(hasWon);
     saveAttempt({
       tournamentId: tournament.id,
-      hasWon: isGameWon,
+      hasWon,
     });
-  }, [isGameWon, saveAttempt, tournament.id]);
-
-  const handleOnAttempt = (hasWon: boolean) => {
-    setAttempts(attempts + 1);
-    if (hasWon) {
-      setIsGameWon(true);
-    }
   };
 
-  const handleGameStateChange = (state: "playing" | "won" | "paused") => {
+  const handleGameStateChange = (
+    state: "playing" | "won" | "paused" | "lost"
+  ) => {
     if (state === "won") {
+      setIsGameWon(true);
+      setShowVictoryDialog(true);
+    } else if (state === "lost") {
+      setIsGameWon(false);
       setShowVictoryDialog(true);
     }
   };
@@ -76,7 +83,7 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
     setShowVictoryDialog(false);
     setAttempts(0);
     setIsGameWon(false);
-    window.location.reload(); // Reload to restart the game
+    setGameInstanceId((prev) => prev + 1);
   };
 
   const handleBackToLobby = () => {
@@ -117,7 +124,13 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
         }
         myPrize={userPrize?.status === "ok" ? userPrize.data : null}
         onPlay={() => setIsPlaying(true)}
-        prizePool={tournament.prizePool}
+        prizePool={
+          tournamentOnchainData
+            ? Number.parseFloat(
+                formatUnits(BigInt(tournamentOnchainData.prizePool), 18)
+              )
+            : tournament.prizePool
+        }
         tournament={tournament}
         user={user}
         userPrizes={userPrizes?.status === "ok" ? userPrizes.data : []}
@@ -134,6 +147,7 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
           <Game
             attempts={attempts}
             error={saveAttemptError ? saveAttemptError.message : null}
+            key={gameInstanceId}
             loading={isSavingAttempt}
             onAttempt={handleOnAttempt}
             onGameStateChange={handleGameStateChange}
@@ -145,50 +159,63 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
       </div>
 
       <Dialog onOpenChange={setShowVictoryDialog} open={showVictoryDialog}>
+        <DialogTitle className="sr-only">Game</DialogTitle>
+        <DialogDescription className="sr-only">
+          {isGameWon ? "Level Complete" : "Level Failed"}
+        </DialogDescription>
         <DialogContent
-          className="mx-4 max-w-md border-4 border-cyan-400 bg-linear-to-b from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl shadow-cyan-500/50 sm:max-w-2xl sm:p-8"
+          className="mx-4 max-w-md border bg-background p-6 shadow-lg sm:max-w-2xl sm:p-8"
           showCloseButton={false}
         >
           <div className="flex flex-col items-center gap-8">
             {/* Title */}
             <div className="flex animate-bounce-slow flex-col items-center gap-2 text-center">
-              <h1
-                className="font-black font-orbitron text-3xl text-transparent uppercase tracking-wider sm:text-4xl"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #FFF 0%, #FFD700 50%, #FF8C00 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  textShadow: "0 0 30px rgba(255, 215, 0, 0.6)",
-                }}
-              >
-                Victory!
+              <h1 className="font-black font-orbitron text-3xl text-foreground uppercase tracking-wider sm:text-4xl">
+                {isGameWon ? (
+                  <span className="text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]">
+                    Victory!
+                  </span>
+                ) : (
+                  <span className="text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]">
+                    Game Over
+                  </span>
+                )}
               </h1>
-              <p className="mt-2 font-bold text-cyan-300 text-lg sm:text-xl">
-                Level Complete
+              <p className="mt-2 font-bold text-lg text-muted-foreground sm:text-xl">
+                {isGameWon ? (
+                  <span className="text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]">
+                    Level Complete
+                  </span>
+                ) : (
+                  <span className="text-orange-400 drop-shadow-[0_0_10px_rgba(251,146,60,0.6)]">
+                    Level Failed
+                  </span>
+                )}
               </p>
-              <p className="wrap-break-word max-w-xs text-center font-bold font-chakra-petch text-gray-300 text-sm">
-                Comeback tomorrow to claim your prize
+              <p className="wrap-break-word max-w-xs text-center font-bold font-oxanium text-muted-foreground/80 text-sm">
+                {isGameWon
+                  ? "Come back tomorrow to claim your prize"
+                  : "Tap AGAIN to try the level again"}
               </p>
             </div>
 
             {/* Stats Grid */}
             <div className="grid w-full grid-cols-2 gap-4">
-              <div className="rounded-lg border-2 border-cyan-600 bg-slate-950/50 p-4 backdrop-blur-sm">
-                <p className="font-['Chakra_Petch'] text-cyan-400 text-sm uppercase tracking-wide">
+              <div className="flex flex-col justify-center rounded-lg border bg-muted/20 p-4 backdrop-blur-sm">
+                <p className="font-oxanium text-muted-foreground text-sm uppercase tracking-wide">
                   Attempts
                 </p>
-                <p className="mt-1 font-['Orbitron'] font-bold text-4xl text-white">
+                <p className="mt-1 font-bold font-orbitron text-4xl text-foreground">
                   {attempts}
                 </p>
               </div>
               <button
-                className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-emerald-600 bg-slate-950/50 p-4 backdrop-blur-sm transition-all hover:scale-105 hover:border-emerald-400"
+                className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg border bg-muted/20 p-4 backdrop-blur-sm transition-all hover:scale-105 hover:bg-muted/40"
                 onClick={handleNotifyMe}
                 type="button"
               >
-                <BellIcon className="size-8" />
-                <span className="font-bold font-chakra-petch text-sm text-white uppercase tracking-wide">
+                <BellIcon className="size-8 text-foreground" />
+                <span className="font-bold font-oxanium text-muted-foreground text-sm uppercase tracking-wide">
                   Notify me!
                 </span>
               </button>
@@ -196,26 +223,41 @@ export const TournamentPage = ({ tournament }: { tournament: Tournament }) => {
 
             {/* Action Buttons */}
             <div className="flex w-full gap-4">
-              <button
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border-4 border-blue-500 bg-linear-to-br from-cyan-600 to-cyan-800 px-6 py-4 font-bold text-lg text-white uppercase tracking-wide shadow-cyan-500/50 shadow-lg transition-all hover:scale-105 hover:shadow-cyan-500/70"
-                onClick={handlePlayAgain}
-                type="button"
-              >
-                <RotateCcwIcon className="size-6" />
-                <span className="font-bold font-chakra-petch text-lg text-white uppercase tracking-wide">
-                  Again
-                </span>
-              </button>
-              <button
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg border-4 border-orange-500 bg-linear-to-br from-orange-600 to-orange-800 px-6 py-4 font-bold text-lg text-white uppercase tracking-wide shadow-lg shadow-orange-500/50 transition-all hover:scale-105 hover:shadow-orange-500/70"
-                onClick={handleBackToLobby}
-                type="button"
-              >
-                <ArrowLeftIcon className="size-6" />
-                <span className="font-bold font-chakra-petch text-lg text-white uppercase tracking-wide">
-                  Lobby
-                </span>
-              </button>
+              {isGameWon ? (
+                <button
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground px-6 py-4 font-bold text-background text-lg uppercase tracking-wide shadow-md transition-all hover:scale-105 hover:bg-foreground/90"
+                  onClick={handleBackToLobby}
+                  type="button"
+                >
+                  <ArrowLeftIcon className="size-6" />
+                  <span className="font-bold font-oxanium text-lg uppercase tracking-wide">
+                    Lobby
+                  </span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-foreground px-6 py-4 font-bold text-background text-lg uppercase tracking-wide shadow-md transition-all hover:scale-105 hover:bg-foreground/90"
+                    onClick={handlePlayAgain}
+                    type="button"
+                  >
+                    <RotateCcwIcon className="size-6" />
+                    <span className="font-bold font-oxanium text-lg uppercase tracking-wide">
+                      Again
+                    </span>
+                  </button>
+                  <button
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg border bg-muted/20 px-6 py-4 font-bold text-lg text-muted-foreground uppercase tracking-wide transition-all hover:scale-105 hover:bg-muted/40"
+                    onClick={handleBackToLobby}
+                    type="button"
+                  >
+                    <ArrowLeftIcon className="size-6" />
+                    <span className="font-bold font-oxanium text-lg uppercase tracking-wide">
+                      Lobby
+                    </span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </DialogContent>

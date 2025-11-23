@@ -234,26 +234,21 @@ const DrawGraphics = ({
   );
 };
 
+type GameState = "playing" | "won" | "paused" | "lost";
+
 type GameProps = {
   attempts: number;
   onAttempt: (hasWon: boolean) => void;
   loading: boolean;
   error: string | null;
   ready: boolean;
-  onGameStateChange?: (state: "playing" | "won" | "paused") => void;
+  onGameStateChange?: (state: GameState) => void;
 };
-const GameContent = ({
-  attempts,
-  onAttempt,
-  ready,
-  onGameStateChange,
-}: GameProps) => {
+const GameContent = ({ attempts, onAttempt, onGameStateChange }: GameProps) => {
   const { app } = useApplication();
   const worldRef = useRef<Container>(null);
   const playerRef = useRef<Graphics>(null);
-  const [gameState, setGameState] = useState<"playing" | "won" | "paused">(
-    "playing"
-  );
+  const [gameState, setGameState] = useState<GameState>("playing");
 
   // Notify parent of game state changes
   useEffect(() => {
@@ -273,7 +268,7 @@ const GameContent = ({
 
   // Input handling
   useEffect(() => {
-    if (!app?.canvas) {
+    if (!app || (app && !app.canvas)) {
       return;
     }
 
@@ -315,7 +310,7 @@ const GameContent = ({
 
   // Game Loop
   useTick((ticker) => {
-    if (gameState === "won" || gameState === "paused") {
+    if (gameState === "won" || gameState === "paused" || gameState === "lost") {
       return;
     }
 
@@ -379,6 +374,7 @@ const GameContent = ({
         const hit = px1 < ox2 && px2 > ox1 && adjPy1 < oy2 && adjPy2 > oy1;
         if (hit) {
           onAttempt(false);
+          setGameState("lost");
           resetPlayer();
           break;
         }
@@ -572,7 +568,7 @@ const GameContent = ({
 
       {/* Victory text removed - handled by external dialog */}
 
-      {!ready && (
+      {/* {!ready && (
         <pixiText
           anchor={0.5}
           style={textStyle}
@@ -580,7 +576,7 @@ const GameContent = ({
           x={app.screen.width / 2}
           y={app.screen.height / 2}
         />
-      )}
+      )} */}
 
       {/* {loading && (
         <pixiText

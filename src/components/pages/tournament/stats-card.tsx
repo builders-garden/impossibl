@@ -91,7 +91,7 @@ export const StatsCard = ({
           size="icon"
           variant="outline"
         >
-          <RefreshCwIcon className="size-4 text-black" />
+          <RefreshCwIcon className="size-4 text-white" />
         </Button>
       </div>
     </div>
