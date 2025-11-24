@@ -93,9 +93,9 @@ export function getFarcasterManifest() {
   let miniappName = env.NEXT_PUBLIC_APPLICATION_NAME;
   let noindex = true;
   const appUrl = env.NEXT_PUBLIC_URL;
-  if (appUrl === "https://production-url.com") {
+  if (appUrl === "https://impossibl.fun") {
     noindex = false;
-  } else if (appUrl === "https://dev.production-url.com") {
+  } else if (appUrl === "https://dev.impossibl.fun") {
     miniappName += " Dev";
   } else if (appUrl.includes("ngrok") || appUrl.includes("tunnel")) {
     miniappName += " Local";
